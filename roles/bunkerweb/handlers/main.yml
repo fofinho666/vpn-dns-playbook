@@ -1,0 +1,4 @@
+- name: Restart bunkerweb
+  docker_container:
+    name: bunkerweb
+    restart: yes

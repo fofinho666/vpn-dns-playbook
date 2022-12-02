@@ -1,0 +1,36 @@
+---
+- name: Setup vpn
+  hosts: server
+  become: true
+
+  vars_files:
+    - secret.yml
+
+  roles:
+    - role: docker
+      tags:
+        - docker
+
+    - role: ufw
+      tags:
+        - ufw
+
+    - role: ddclient
+      tags:
+        - ddclient
+    
+    - role: adguard-unbound
+      tags:
+        - adguard
+
+    - role: authelia
+      tags:
+        - authelia
+
+    - role: wireguard
+      tags:
+        - wireguard
+    
+    - role: bunkerweb
+      tags:
+        - bunkerweb

@@ -1,0 +1,12 @@
+---
+- name: Install ddclient
+  apt:
+    name: ddclient
+    state: latest
+
+- name: Set ddclient configurations
+  template:
+    src: ddclient.conf.j2
+    dest: /etc/ddclient.conf
+  notify:
+    - Restart ddclient service

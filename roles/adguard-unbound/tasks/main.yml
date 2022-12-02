@@ -1,0 +1,77 @@
+---
+- name: Create directory for 'adguard-unbound-build'
+  file:
+    path: "{{ docker_dir }}/adguard-unbound-build"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy content of directory 'adguard-unbound-build'
+  copy:
+    src: adguard-unbound-build/
+    dest: "{{ docker_dir }}/adguard-unbound-build"
+
+- name: Build the adguard-unbound Docker image
+  docker_image:
+    name: adguard-unbound
+    build:
+      path: "{{ docker_dir }}/adguard-unbound-build"
+    source: build
+
+- name: Create the adguard-unbound config folders
+  file:
+    path: "{{ docker_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0755
+  loop:
+    - adguard-unbound
+    - adguard-unbound/adguard
+    - adguard-unbound/dnscrypt-proxy
+    - adguard-unbound/adguard/work
+    - adguard-unbound/adguard/conf
+
+- name: Copy Adguard config
+  copy:
+    src: AdGuardHome.yaml
+    dest: "{{ docker_dir }}/adguard-unbound/adguard/conf/AdGuardHome.yaml"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+  notify: Restart adguard-unbound
+
+- name: Template the dnscrypt-proxy config
+  template:
+    src: dnscrypt-proxy.toml.j2
+    dest: "{{ docker_dir }}/adguard-unbound/dnscrypt-proxy/dnscrypt-proxy.toml"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+  notify: Restart adguard-unbound
+
+- name: Disable DNSStubListener
+  lineinfile:
+    path: /etc/systemd/resolved.conf
+    line: "DNSStubListener=no"
+    regexp: "^#?DNSStubListener=(yes|no)$"
+  notify: Restart systemd-resolved
+
+- name: Make sure the adguard-unbound container is created and running
+  docker_container:
+    name: adguard-unbound
+    image: adguard-unbound
+    networks:
+      - name: wg_network
+        ipv4_address: 10.8.2.2
+    state: "started"
+    restart_policy: unless-stopped
+    volumes:
+      - "{{ docker_dir }}/adguard-unbound/dnscrypt-proxy/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro"
+      - "{{ docker_dir }}/adguard-unbound/adguard/work:/opt/adguardhome/work"
+      - "{{ docker_dir }}/adguard-unbound/adguard/conf:/opt/adguardhome/conf"
+    ports:
+      - 53:53/udp
+      - 53:53/tcp
+      - 67:67/udp

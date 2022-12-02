@@ -1,0 +1,9 @@
+---
+roles:
+  - name: geerlingguy.pip
+  - name: geerlingguy.docker_arm
+  - name: chriswayg.msmtp-mailer
+
+collections:
+  - name: community.docker
+  - name: community.general
