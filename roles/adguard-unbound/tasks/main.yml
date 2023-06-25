@@ -63,7 +63,7 @@
     name: adguard-unbound
     image: adguard-unbound
     networks:
-      - name: wg_network
+      - name: docker_network
         ipv4_address: 10.8.2.2
     state: "started"
     restart_policy: unless-stopped

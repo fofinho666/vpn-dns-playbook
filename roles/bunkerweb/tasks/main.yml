@@ -20,7 +20,7 @@
     name: "bunkerweb"
     image: "bunkerity/bunkerweb:1.4.2"
     networks:
-      - name: wg_network
+      - name: docker_network
         ipv4_address: 10.8.2.5
     pull: yes
     state: "started"

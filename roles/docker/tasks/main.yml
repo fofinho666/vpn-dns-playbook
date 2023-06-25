@@ -6,9 +6,9 @@
       - docker
     append: yes
     
-- name: Create the wg network
+- name: Create the docker network
   docker_network:
-    name: wg_network
+    name: docker_network
     ipam_config:
       - subnet: 10.8.2.0/24
         gateway: 10.8.2.1

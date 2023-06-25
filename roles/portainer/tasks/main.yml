@@ -5,7 +5,7 @@
     image: portainer/portainer-ce:latest
     pull: yes
     networks:
-      - name: wg_network
+      - name: docker_network
         ipv4_address: 10.8.2.7
     state: started
     ports:
