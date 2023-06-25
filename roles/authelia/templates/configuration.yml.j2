@@ -26,11 +26,13 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    - domain: {{ adguard_host }}
-      policy: two_factor
     - domain: {{ authelia_host }}
       policy: bypass
+    - domain: {{ adguard_host }}
+      policy: two_factor
     - domain: {{ wireguard_host }}
+      policy: two_factor
+    - domain: {{ portainer_host }}
       policy: two_factor
 
 session:

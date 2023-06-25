@@ -11,6 +11,7 @@ all:
     authelia_host: "auth.{{ root_host }}"
     wireguard_host: "wg.{{ root_host }}"
     wireguard_port: "51820"
+    portainer_host: "portainer.{{ root_host }}"
     ssh_port: "22"
 
     # It can be quad9 google or cloudflare

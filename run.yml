@@ -30,6 +30,10 @@
     - role: wireguard
       tags:
         - wireguard
+
+    - role: portainer
+      tags:
+        - portainer
     
     - role: bunkerweb
       tags:

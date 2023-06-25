@@ -1,0 +1,16 @@
+---
+- name: Make sure the Portainer container is created and running
+  docker_container:
+    name: portainer
+    image: portainer/portainer-ce:latest
+    pull: yes
+    networks:
+      - name: wg_network
+        ipv4_address: 10.8.2.7
+    state: started
+    ports:
+      - 9000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - "{{ docker_dir }}/portainer:/data"
+    restart_policy: unless-stopped

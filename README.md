@@ -7,7 +7,7 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [Authelia](https://github.com/authelia/authelia) for two-factor authentication
 - [DDclient](https://github.com/ddclient/ddclient) to update the Dynamic DNS
 - [BunkerWeb](https://github.com/bunkerity/bunkerweb) for reverse proxy 
-
+- [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely 
 ## Requirements 
 - **Raspberry Pi 4** with **Ubuntu server** installed 
 - Port `80`, `443` and `51820` opened in your NAT Router
@@ -46,7 +46,8 @@ The container names are:
 - BunkerWeb -> `bunkerweb`
 - Authelia -> `authelia`
 - AdGuardHome -> `adguard-unbound`
-- WireGuard -> `wg-easy`                                                                                                                
+- WireGuard -> `wg-easy`     
+- Portainer -> `portainer`                                                                                                                
 
 ## Thanks  
 - Wolfgang for his [ansible-easy-vpn](https://github.com/notthebee/ansible-easy-vpn) playbook, from were I copy/past the most 
