@@ -64,7 +64,7 @@
     image: adguard-unbound
     networks:
       - name: docker_network
-        ipv4_address: 10.8.2.2
+        ipv4_address: "{{ adguard_network_address }}"
     state: "started"
     restart_policy: unless-stopped
     volumes:
