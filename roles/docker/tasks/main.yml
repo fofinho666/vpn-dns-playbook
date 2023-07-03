@@ -10,6 +10,6 @@
   docker_network:
     name: docker_network
     ipam_config:
-      - subnet: 10.8.2.0/24
-        gateway: 10.8.2.1
-        iprange: 10.8.2.0/24
+      - subnet: "{{ docker_network_subnet }}"
+        gateway: "{{ docker_network_gateway }}" 
+        iprange: "{{ docker_network_iprange }}"

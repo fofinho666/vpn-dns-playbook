@@ -32,7 +32,7 @@
     image: "redis:alpine"
     networks:
       - name: docker_network
-        ipv4_address: 10.8.2.3
+        ipv4_address: "{{ redis_network_address }}"
     pull: yes
     state: "started"
     restart_policy: unless-stopped
@@ -43,7 +43,7 @@
     image: "authelia/authelia:4.36"
     networks:
       - name: docker_network
-        ipv4_address: 10.8.2.4
+        ipv4_address: "{{ authelia_network_address }}"
     pull: yes
     state: "started"
     volumes:

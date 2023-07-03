@@ -6,7 +6,7 @@
     pull: yes
     networks:
       - name: docker_network
-        ipv4_address: 10.8.2.6
+        ipv4_address: "{{ wireguard_docker_network }}"
     sysctls:
       "net.ipv4.conf.all.src_valid_mark": "1"
       "net.ipv4.ip_forward": "1"

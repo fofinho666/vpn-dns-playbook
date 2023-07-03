@@ -25,7 +25,7 @@
     state: directory
     owner: "{{ user }}"
     group: "{{ user }}"
-    mode: 0755
+    mode: '0755'
   loop:
     - adguard-unbound
     - adguard-unbound/adguard
@@ -39,7 +39,7 @@
     dest: "{{ docker_dir }}/adguard-unbound/adguard/conf/AdGuardHome.yaml"
     owner: "{{ user }}"
     group: "{{ user }}"
-    mode: 0644
+    mode: '0644'
   notify: Restart adguard-unbound
 
 - name: Template the dnscrypt-proxy config
@@ -48,14 +48,14 @@
     dest: "{{ docker_dir }}/adguard-unbound/dnscrypt-proxy/dnscrypt-proxy.toml"
     owner: "{{ user }}"
     group: "{{ user }}"
-    mode: 0644
+    mode: '0644'
   notify: Restart adguard-unbound
 
 - name: Disable DNSStubListener
   lineinfile:
     path: /etc/systemd/resolved.conf
-    line: "DNSStubListener=no"
-    regexp: "^#?DNSStubListener=(yes|no)$"
+    line: DNSStubListener=no
+    regexp: ^#?DNSStubListener=(yes|no)$
   notify: Restart systemd-resolved
 
 - name: Make sure the adguard-unbound container is created and running
@@ -65,13 +65,13 @@
     networks:
       - name: docker_network
         ipv4_address: "{{ adguard_network_address }}"
-    state: "started"
+    state: started
     restart_policy: unless-stopped
     volumes:
       - "{{ docker_dir }}/adguard-unbound/dnscrypt-proxy/dnscrypt-proxy.toml:/etc/dnscrypt-proxy/dnscrypt-proxy.toml:ro"
       - "{{ docker_dir }}/adguard-unbound/adguard/work:/opt/adguardhome/work"
       - "{{ docker_dir }}/adguard-unbound/adguard/conf:/opt/adguardhome/conf"
     ports:
-      - 53:53/udp
-      - 53:53/tcp
-      - 67:67/udp
+      - "{{ dns_port }}:53/udp"
+      - "{{ dns_port }}:53/tcp"
+      - "{{ bootp_server_port }}:67/udp"

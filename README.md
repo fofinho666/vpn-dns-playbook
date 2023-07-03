@@ -10,12 +10,13 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely 
 ## Requirements 
 - **Raspberry Pi 4** with **Ubuntu server** installed 
-- Port `80`, `443` and `51820` opened in your NAT Router
+- Port `80`, `443` and the **wireguard port** opened in your NAT Router
 - An account and subdomain at [FreeDNS](https://freedns.afraid.org/)
   - You'll also need to add subdomains to your freedns subdomain: 
     - `adguard.<freedns subdomain>` 
     - `auth.<freedns subdomain>`
     - `wg.<freedns subdomain>`
+    - `portainer.<freedns subdomain>`
 
 ## Setup
 - Install ansible `brew install ansible`
@@ -47,7 +48,8 @@ The container names are:
 - Authelia -> `authelia`
 - AdGuardHome -> `adguard-unbound`
 - WireGuard -> `wg-easy`     
-- Portainer -> `portainer`                                                                                                                
+- Portainer -> `portainer`
+- Homer Dashboard -> `homer`                                                                                                          
 
 ## Thanks  
 - Wolfgang for his [ansible-easy-vpn](https://github.com/notthebee/ansible-easy-vpn) playbook, from were I copy/past the most 

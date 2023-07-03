@@ -6,10 +6,8 @@
     pull: yes
     networks:
       - name: docker_network
-        ipv4_address: 10.8.2.7
+        ipv4_address: "{{ portainer_network_address }}"
     state: started
-    ports:
-      - 9000:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock 
       - "{{ docker_dir }}/portainer:/data"
