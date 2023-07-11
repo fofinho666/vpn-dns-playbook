@@ -6,6 +6,21 @@
   vars_files:
     - secret.yml
 
+  pre_tasks:
+    - name: Get User and Group IDs
+      getent:
+        database: passwd
+      tags:
+        - always
+
+    - name: Set User and Group IDs as facts
+      set_fact:
+        uid: "{{ getent_passwd[user].1 }}"
+        gid: "{{ getent_passwd[user].2 }}"
+        user_home: "{{ getent_passwd[user].4 }}"
+      tags:
+        - always
+
   roles:
     - role: docker
       tags:
@@ -38,3 +53,7 @@
     - role: bunkerweb
       tags:
         - bunkerweb
+
+    - role: homer
+      tags:
+        - homer

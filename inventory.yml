@@ -32,6 +32,7 @@ all:
     bunkerweb_network_address: 10.8.2.5
     wireguard_docker_network: 10.8.2.6
     portainer_network_address: 10.8.2.7
+    homer_network_address: 10.8.2.8
 
     http_port: "80"
     https_port: "443"
@@ -54,4 +55,8 @@ all:
       - port: "{{ home_page_port }}"
         proto: tcp
       - port: "{{ portainer_port }}"
-        proto: any
+        proto: tcp
+      - port: "{{ adguard_port }}"
+        proto: tcp
+      - port: "{{ wg_easy_port }}"
+        proto: tcp
