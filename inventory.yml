@@ -53,3 +53,5 @@ all:
         proto: any
       - port: "{{ home_page_port }}"
         proto: tcp
+      - port: "{{ portainer_port }}"
+        proto: any

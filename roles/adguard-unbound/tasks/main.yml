@@ -5,7 +5,7 @@
     state: directory
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
 
 - name: Copy content of directory 'adguard-unbound-build'
   copy:
@@ -23,9 +23,9 @@
   file:
     path: "{{ docker_dir }}/{{ item }}"
     state: directory
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: '0755'
+    owner: "{{ uid }}"
+    group: "{{ gid }}"
+    mode: "0755"
   loop:
     - adguard-unbound
     - adguard-unbound/adguard
@@ -37,18 +37,18 @@
   copy:
     src: AdGuardHome.yaml
     dest: "{{ docker_dir }}/adguard-unbound/adguard/conf/AdGuardHome.yaml"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: '0644'
+    owner: "{{ uid }}"
+    group: "{{ gid }}"
+    mode: "0644"
   notify: Restart adguard-unbound
 
 - name: Template the dnscrypt-proxy config
   template:
     src: dnscrypt-proxy.toml.j2
     dest: "{{ docker_dir }}/adguard-unbound/dnscrypt-proxy/dnscrypt-proxy.toml"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: '0644'
+    owner: "{{ uid }}"
+    group: "{{ gid }}"
+    mode: "0644"
   notify: Restart adguard-unbound
 
 - name: Disable DNSStubListener
