@@ -12,4 +12,4 @@
     ipam_config:
       - subnet: "{{ docker_network_subnet }}"
         gateway: "{{ docker_network_gateway }}" 
-        iprange: "{{ docker_network_iprange }}"
+        iprange: "{{ docker_network_ip_range }}"

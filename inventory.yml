@@ -14,17 +14,24 @@ all:
 
     wireguard_host: "wg.{{ root_host }}"
     wireguard_subnet: 10.8.0.x
+    wireguard_ip_range: 10.8.0.0/24
 
     portainer_host: "portainer.{{ root_host }}"
+
+    freedns_domains:
+      - "{{ root_host }}"
+      - "{{ authelia_host }}"
+      - "{{ wireguard_host }}"
+      - "{{ portainer_host }}"
 
     # It can be quad9 google or cloudflare
     dns_nameservers: cloudflare
 
     docker_dir: /opt/docker
-    
+
     # docker_network
     docker_network_subnet: 10.8.2.0/24
-    docker_network_iprange: 10.8.2.0/24
+    docker_network_ip_range: 10.8.2.0/24
     docker_network_gateway: 10.8.2.1
     adguard_network_address: 10.8.2.2
     redis_network_address: 10.8.2.3
@@ -52,11 +59,3 @@ all:
         proto: any
       - port: "{{ bootp_server_port }}"
         proto: any
-      - port: "{{ home_page_port }}"
-        proto: tcp
-      - port: "{{ portainer_port }}"
-        proto: tcp
-      - port: "{{ adguard_port }}"
-        proto: tcp
-      - port: "{{ wg_easy_port }}"
-        proto: tcp

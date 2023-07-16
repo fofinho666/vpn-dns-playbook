@@ -75,4 +75,3 @@
       - "{{ dns_port }}:53/udp"
       - "{{ dns_port }}:53/tcp"
       - "{{ bootp_server_port }}:67/udp"
-      - "{{ adguard_port }}:3000/tcp"

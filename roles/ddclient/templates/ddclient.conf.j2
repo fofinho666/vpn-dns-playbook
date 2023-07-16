@@ -12,6 +12,6 @@ server=freedns.afraid.org
 protocol=freedns
 login={{ freedns_login }}
 password={{ freedns_password }}
-# {{ freedns_domain }}
-{{ authelia_host }}
-{{ wireguard_host }}
+{% for domain in freedns_domains %}
+{{ domain }}
+{% endfor %}

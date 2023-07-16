@@ -18,10 +18,9 @@
       WG_HOST: "{{ wireguard_host }}"
       WG_PORT: "{{ wireguard_port }}"
       WG_DEFAULT_DNS: "{{ adguard_network_address }}"
-      WG_PERSISTENT_KEEPALIVE: "25"
+      # WG_PERSISTENT_KEEPALIVE: "25"
     ports:
       - "{{ wireguard_port }}:51820/udp"
-      - "{{ wg_easy_port }}:51821/tcp"
     volumes:
       - "{{ docker_dir }}/wireguard:/etc/wireguard"
     restart_policy: unless-stopped

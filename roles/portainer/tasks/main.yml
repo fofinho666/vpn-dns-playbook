@@ -8,8 +8,6 @@
       - name: docker_network
         ipv4_address: "{{ portainer_network_address }}"
     state: started
-    ports:
-      - "{{ portainer_port }}:9000/tcp"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock 
       - "{{ docker_dir }}/portainer:/data"
