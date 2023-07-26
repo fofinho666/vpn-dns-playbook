@@ -9,4 +9,5 @@
     src: ddclient.conf.j2
     dest: /etc/ddclient.conf
   notify:
+    - Clear ddclient cache
     - Restart ddclient service

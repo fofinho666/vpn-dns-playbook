@@ -1,3 +1,9 @@
+
+- name: Clear ddclient cache
+  file:
+    path: /var/cache/ddclient/ddclient.cache
+    state: absent
+
 - name: Restart ddclient service
   systemd:
     name: ddclient

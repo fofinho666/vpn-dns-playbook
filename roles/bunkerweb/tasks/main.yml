@@ -14,6 +14,7 @@
     group: 101
     mode: "0644"
     dest: "{{ docker_dir }}/bunkerweb/.env"
+  notify: Restart bunkerweb
 
 - name: Make sure the Bunkerweb container is created and running
   docker_container:

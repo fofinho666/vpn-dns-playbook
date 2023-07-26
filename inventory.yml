@@ -6,23 +6,28 @@ all:
       ansible_user: "{{ user}}"
 
   vars:
-    root_host: "{{ freedns_domain }}"
+    adguard_subdomain: "adguard.{{ domain }}"
 
-    adguard_host: "adguard.{{ root_host }}"
+    authelia_subdomain: "auth.{{ domain }}"
 
-    authelia_host: "auth.{{ root_host }}"
-
-    wireguard_host: "wg.{{ root_host }}"
+    wireguard_subdomain: "wg.{{ domain }}"
     wireguard_subnet: 10.8.0.x
     wireguard_ip_range: 10.8.0.0/24
 
-    portainer_host: "portainer.{{ root_host }}"
+    portainer_subdomain: "portainer.{{ domain }}"
 
-    freedns_domains:
-      - "{{ root_host }}"
-      - "{{ authelia_host }}"
-      - "{{ wireguard_host }}"
-      - "{{ portainer_host }}"
+    external_services:
+      - name: Wireguard
+        subdomain: "{{ wireguard_subdomain }}"
+        docker_url: http://wireguard:51821
+      - name: Portainer
+        subdomain: "{{ portainer_subdomain }}"
+        docker_url: http://portainer:9000
+
+    internal_services:
+      - name: Adguard
+        subdomain: "{{ adguard_subdomain }}"
+        docker_url: http://adguard-unbound:3000
 
     # It can be quad9 google or cloudflare
     dns_nameservers: cloudflare

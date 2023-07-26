@@ -1,7 +1,7 @@
 # VPN-DNS-playbook
 Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 
-### It setups 
+## It setups
 - [WireGuard Easy](https://github.com/WeeJeWel/wg-easy) for VPN
 - [AdGuardHome](https://github.com/AdguardTeam/AdGuardHome) and [Unbound](https://github.com/NLnetLabs/unbound) for DNS resolver, DNS-over-HTTPS and ad-blocking
 - [Authelia](https://github.com/authelia/authelia) for two-factor authentication
@@ -11,12 +11,7 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 ## Requirements 
 - **Raspberry Pi 4** with **Ubuntu server** installed 
 - Port `80`, `443` and the **wireguard port** opened in your NAT Router
-- An account and subdomain at [FreeDNS](https://freedns.afraid.org/)
-  - You'll also need to add subdomains to your freedns subdomain: 
-    - `adguard.<freedns subdomain>` 
-    - `auth.<freedns subdomain>`
-    - `wg.<freedns subdomain>`
-    - `portainer.<freedns subdomain>`
+- Get and domain at [NameCheap](https://www.namecheap.com/) and setup [Dynamic DNS](https://www.namecheap.com/support/knowledgebase/article.aspx/36/11/how-do-i-start-using-dynamic-dns/)
 
 ## Setup
 - Install ansible `brew install ansible`
