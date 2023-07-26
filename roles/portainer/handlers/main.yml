@@ -1,0 +1,4 @@
+- name: Restart portainer
+  docker_container:
+    name: portainer
+    restart: yes
