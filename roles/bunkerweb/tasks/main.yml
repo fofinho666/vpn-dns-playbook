@@ -14,7 +14,6 @@
     group: 101
     mode: "0644"
     dest: "{{ docker_dir }}/bunkerweb/.env"
-  notify: Restart bunkerweb
 
 - name: Make sure the Bunkerweb container is created and running
   docker_container:
@@ -24,6 +23,7 @@
       - name: docker_network
         ipv4_address: "{{ bunkerweb_network_address }}"
     pull: yes
+    restart: yes
     state: started
     env_file: "{{ docker_dir }}/bunkerweb/.env"
     ports:

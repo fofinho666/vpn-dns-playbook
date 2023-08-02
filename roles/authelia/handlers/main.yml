@@ -4,8 +4,3 @@
     executable: /bin/bash
     cmd: source $HOME/.bashrc
   failed_when: false
-
-- name: Restart authelia
-  docker_container:
-    name: authelia
-    restart: yes

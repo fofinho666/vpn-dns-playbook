@@ -15,7 +15,6 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Restart authelia
 
 - name: Copy the users database
   template:
@@ -24,7 +23,6 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Restart authelia
 
 - name: Make sure the Redis container is created and running
   docker_container:
@@ -46,6 +44,7 @@
         ipv4_address: "{{ authelia_network_address }}"
     pull: yes
     state: started
+    restart: yes
     volumes:
       - "{{ docker_dir }}/authelia:/config"
     restart_policy: unless-stopped

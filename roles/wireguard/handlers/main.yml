@@ -1,4 +1,0 @@
-- name: Restart wireguard
-  docker_container:
-    name: wireguard
-    restart: yes
