@@ -6,30 +6,29 @@ all:
       ansible_user: "{{ user}}"
 
   vars:
-    adguard_subdomain: "adguard.{{ domain }}"
-
     authelia_subdomain: "auth.{{ domain }}"
 
     wireguard_subdomain: "wg.{{ domain }}"
     wireguard_subnet: 10.8.0.x
     wireguard_ip_range: 10.8.0.0/24
 
-    portainer_subdomain: "portainer.{{ domain }}"
-
-    external_services:
+    default_services:
       - name: Wireguard
         subdomain: "{{ wireguard_subdomain }}"
-        docker_url: http://wireguard:51821
+        url: http://wireguard:51821
+        external: true
       - name: Portainer
-        subdomain: "{{ portainer_subdomain }}"
-        docker_url: http://portainer:9000
+        subdomain: "portainer.{{ domain }}"
+        url: http://portainer:9000
+        external: true
+      - name: AdGuard
+        subdomain: "adguard.{{ domain }}"
+        url: http://adguard-unbound:3000
+        use_cors: true
 
-    internal_services:
-      - name: Adguard
-        subdomain: "{{ adguard_subdomain }}"
-        docker_url: http://adguard-unbound:3000
+    services: "{{ default_services + (secret_services | default([])) }}"
 
-    # It can be quad9 google or cloudflare
+    # It can be "quad9" "google" or "cloudflare"
     dns_nameservers: cloudflare
 
     docker_dir: /opt/docker

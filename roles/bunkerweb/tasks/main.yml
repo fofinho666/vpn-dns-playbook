@@ -18,7 +18,7 @@
 - name: Make sure the Bunkerweb container is created and running
   docker_container:
     name: bunkerweb
-    image: bunkerity/bunkerweb:1.4.2
+    image: bunkerity/bunkerweb:1.4.8
     networks:
       - name: docker_network
         ipv4_address: "{{ bunkerweb_network_address }}"

@@ -18,8 +18,22 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - Install ansible role dependencies `ansible-galaxy install -r requirements.yml`
 - Establish `ssh` connection with your **Ubuntu server**
 - Setup ansible vault:
-  - Rename `secret_example.yml` to `secret.yml` and fill it with real data
+  - Create a `secret.yml` file based on `secret_example.yml`, and fill it with real data
   - Encrypt it with `ansible-vault encrypt secret.yml`
+- Setup secret_services vault (optional):
+  - Create a `secret_services.yml` file base on `secret_services_example.yml`, and fill it with real data
+  - Encrypt it with `ansible-vault encrypt secret_services.yml`
+
+### Adding services
+To add more services to your setup. Add them to the `secret_services` in `secret_services.yml`
+
+The each service should declare the following fields:
+- `name` (mandatory) - the service name
+- `url` (mandatory) - the service url on your local network
+- `use_cors` (optional) - if the service should use CORS, false by default
+- `external` (optional) - if the service should be externally exposed, false by default
+
+Check `secret_services_example.yml` for an example
 
 ## Run
 - Run the hole playbook `ansible-playbook run.yml`
