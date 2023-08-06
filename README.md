@@ -8,6 +8,7 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [DDclient](https://github.com/ddclient/ddclient) to update the Dynamic DNS
 - [BunkerWeb](https://github.com/bunkerity/bunkerweb) for reverse proxy 
 - [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely 
+- [Homer Dashboard](https://github.com/bastienwirtz/homer) to index our services
 ## Requirements 
 - **Raspberry Pi 4** with **Ubuntu server** installed 
 - Port `80`, `443` and the **wireguard port** opened in your NAT Router
@@ -24,8 +25,8 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
   - Create a `secret_services.yml` file base on `secret_services_example.yml`, and fill it with real data
   - Encrypt it with `ansible-vault encrypt secret_services.yml`
 
-### Adding services
-To add more services to your setup. Add them to the `secret_services` in `secret_services.yml`
+### Reverse-proxy other services
+To add more services to your setup. Add them to the `secret_services` in `secret_services.yml`. And re-run `ansible-playbook run.yml -t bunkerweb`
 
 The each service should declare the following fields:
 - `name` (mandatory) - the service name
@@ -34,6 +35,11 @@ The each service should declare the following fields:
 - `external` (optional) - if the service should be externally exposed, false by default
 
 Check `secret_services_example.yml` for an example
+
+### Homer dashboard
+To add services or configure homer, you need to `ssh` into your server. All the homer files are at `~/homer`.
+
+Refer to [homer documentation](https://github.com/bastienwirtz/homer/blob/main/docs/configuration.md) for more information
 
 ## Run
 - Run the hole playbook `ansible-playbook run.yml`

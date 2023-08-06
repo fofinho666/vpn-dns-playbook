@@ -1,0 +1,69 @@
+---
+title: Home Services
+subtitle: 🪴
+logo: icons/logo.svg
+
+header: false
+footer: false
+
+stylesheet:
+  - assets/custom.css
+
+columns: 1 # You can change this to any number that is a factor of 12: (1, 2, 3, 4, 6, 12)
+connectivityCheck: true
+defaults:
+  layout: columns # Either 'columns', or 'list'
+  colorTheme: dark # One of 'auto', 'light', or 'dark'
+theme: default
+colors:
+  light:
+    highlight-primary: "#fff5f2"
+    highlight-secondary: "#fff5f2"
+    highlight-hover: "#bebebe"
+    background: "#12152B"
+    card-background: rgba(255, 245, 242, 0.8)
+    text: "#ffffff"
+    text-header: "#fafafa"
+    text-title: "#000000"
+    text-subtitle: "#111111"
+    card-shadow: rgba(0, 0, 0, 0.5)
+    link: "#3273dc"
+    link-hover: "#2e4053"
+    background-image: ../assets/wallpaper-light.jpeg # Change wallpaper.jpeg to the name of your own custom wallpaper!
+  dark:
+    highlight-primary: "#181C3A"
+    highlight-secondary: "#181C3A"
+    highlight-hover: "#1F2347"
+    background: "#12152B"
+    card-background: rgba(24, 28, 58, 0.8)
+    text: "#eaeaea"
+    text-header: "#7C71DD"
+    text-title: "#fafafa"
+    text-subtitle: "#8B8D9C"
+    card-shadow: rgba(0, 0, 0, 0.5)
+    link: "#c1c1c1"
+    link-hover: "#fafafa"
+    background-image: ../assets/wallpaper.jpeg
+
+services:
+  - name: Home
+    icon: fa fa-home
+    items:
+      - name: Portainer
+        logo: assets/logos/svg/portainer.svg
+        subtitle: Container manager
+        url: https://portainer.borghildr.com
+        target: _blank
+      
+      - name: AdGuard Home
+        logo: assets/logos/svg/adguardhome.svg
+        subtitle: Recursive DNS resolver and AdBlocker
+        url: https://adguard.borghildr.com/
+        type: AdGuardHome
+        target: _blank
+      
+      - name: Wireguard
+        logo: assets/logos/png/wireguard.png
+        subtitle: Manage VPN clients
+        url: https://wg.borghildr.com
+        target: _blank

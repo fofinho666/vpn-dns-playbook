@@ -1,0 +1,91 @@
+--- 
+- name: Create the homer folder
+  file:
+    path: "{{ user_home }}/{{ item }}"
+    state: directory
+  loop: 
+    - homer
+    - homer/logos
+    - homer-extra
+
+- name: Clone homer extra files repos
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    clone: yes
+    update: yes
+  loop:
+    - repo: https://github.com/WalkxCode/Homer-Theme.git
+      dest: "{{ user_home }}/homer-extra/homer-theme"
+    - repo: https://github.com/NX211/homer-icons.git
+      dest: "{{ user_home }}/homer-extra/homer-icons"
+
+- name: Copy homer extra files to homer folder
+  copy:
+    src: "{{ item.src }}"
+    remote_src: yes
+    dest: "{{ item.dest }}"
+    owner: "{{ uid }}"
+    group: gpio
+    mode: "0644" 
+  loop:
+    - src: "{{ user_home }}/homer-extra/homer-theme/assets/fonts"
+      dest: "{{ user_home }}/homer"
+    - src: "{{ user_home }}/homer-extra/homer-theme/assets/custom.css"
+      dest: "{{ user_home }}/homer"
+    - src: "{{ user_home }}/homer-extra/homer-theme/assets/wallpaper.jpeg"
+      dest: "{{ user_home }}/homer"
+    - src: "{{ user_home }}/homer-extra/homer-theme/assets/wallpaper-light.jpeg"
+      dest: "{{ user_home }}/homer"
+    - src: "{{ user_home }}/homer-extra/homer-icons/png"
+      dest: "{{ user_home }}/homer/logos"
+    - src: "{{ user_home }}/homer-extra/homer-icons/svg"
+      dest: "{{ user_home }}/homer/logos"
+
+- name: Copy our default assets to homer folder
+  copy:
+    src: files/default_assets/
+    dest: "{{ user_home }}/homer"
+    owner: "{{ uid }}"
+    group: gpio
+    mode: "0644"
+
+- name: Check if homer config file exists
+  stat:
+    path: "{{ user_home }}/homer/config.yml"
+  register: config_file
+
+- name: Copy our default homer config file
+  copy:
+    src: files/config.yml
+    dest: "{{ user_home }}/homer/"
+    owner: "{{ uid }}"
+    group: gpio
+    mode: "0644"
+  when: not config_file.stat.exists
+
+- name: Fix homer directories permissions
+  file: 
+    path: "{{ user_home }}/homer"
+    state: directory 
+    recurse: yes
+    owner: "{{ uid }}"
+    group: gpio
+    mode: "0755"
+  
+- name: Make sure the homer container is created and running
+  docker_container:
+    name: homer
+    image: b4bz/homer:latest
+    pull: yes
+    restart: yes
+    state: started
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ homer_network_address }}"
+    env:
+      UID: "{{ uid }}"
+      GID: "{{ gid }}"
+    volumes:
+      - "{{ user_home }}/homer:/www/assets"
+    restart_policy: unless-stopped
