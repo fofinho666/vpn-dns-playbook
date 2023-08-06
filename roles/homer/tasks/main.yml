@@ -6,6 +6,7 @@
   loop: 
     - homer
     - homer/logos
+    - homer/logos/my-logos
     - homer-extra
 
 - name: Clone homer extra files repos
