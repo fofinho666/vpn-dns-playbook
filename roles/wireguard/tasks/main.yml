@@ -6,7 +6,7 @@
     pull: yes
     networks:
       - name: docker_network
-        ipv4_address: "{{ wireguard_docker_network }}"
+        ipv4_address: "{{ wireguard_docker_address }}"
     sysctls:
       "net.ipv4.conf.all.src_valid_mark": "1"
       "net.ipv4.ip_forward": "1"
@@ -18,7 +18,7 @@
     env:
       WG_HOST: "{{ wireguard_subdomain }}"
       WG_PORT: "{{ wireguard_port }}"
-      WG_DEFAULT_DNS: "{{ adguard_network_address }}"
+      WG_DEFAULT_DNS: "{{ adguard_docker_address }}"
     ports:
       - "{{ wireguard_port }}:51820/udp"
     volumes:

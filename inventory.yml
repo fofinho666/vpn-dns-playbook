@@ -6,6 +6,9 @@ all:
       ansible_user: "{{ user}}"
 
   vars:
+    docker_users:
+      - "{{ user}}"
+      
     authelia_subdomain: "auth.{{ domain }}"
 
     wireguard_subdomain: "wg.{{ domain }}"
@@ -35,15 +38,15 @@ all:
 
     # docker_network
     docker_network_subnet: 10.8.2.0/24
-    docker_network_ip_range: 10.8.2.0/24
-    docker_network_gateway: 10.8.2.1
-    adguard_network_address: 10.8.2.2
-    redis_network_address: 10.8.2.3
-    authelia_network_address: 10.8.2.4
-    bunkerweb_network_address: 10.8.2.5
-    wireguard_docker_network: 10.8.2.6
-    portainer_network_address: 10.8.2.7
-    homer_network_address: 10.8.2.8
+    docker_ip_range: 10.8.2.0/24
+    docker_gateway: 10.8.2.1
+    adguard_docker_address: 10.8.2.2
+    redis_docker_address: 10.8.2.3
+    authelia_docker_address: 10.8.2.4
+    nginx_docker_address: 10.8.2.5
+    wireguard_docker_address: 10.8.2.6
+    portainer_docker_address: 10.8.2.7
+    homer_docker_address: 10.8.2.8
 
     http_port: "80"
     https_port: "443"

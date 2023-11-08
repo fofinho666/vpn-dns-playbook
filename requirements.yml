@@ -1,7 +1,7 @@
 ---
 roles:
   - name: geerlingguy.pip
-  - name: geerlingguy.docker_arm
+  - name: geerlingguy.docker
   - name: chriswayg.msmtp-mailer
 
 collections:

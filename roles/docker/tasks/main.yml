@@ -1,15 +1,8 @@
 ---
-- name: Add user "{{ user }}" to docker group 
-  user:
-    name: '{{ user }}'
-    groups:
-      - docker
-    append: yes
-    
 - name: Create the docker network
   docker_network:
     name: docker_network
     ipam_config:
       - subnet: "{{ docker_network_subnet }}"
-        gateway: "{{ docker_network_gateway }}" 
-        iprange: "{{ docker_network_ip_range }}"
+        gateway: "{{ docker_gateway }}" 
+        iprange: "{{ docker_ip_range }}"

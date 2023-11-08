@@ -83,7 +83,7 @@
     state: started
     networks:
       - name: docker_network
-        ipv4_address: "{{ homer_network_address }}"
+        ipv4_address: "{{ homer_docker_address }}"
     env:
       UID: "{{ uid }}"
       GID: "{{ gid }}"
