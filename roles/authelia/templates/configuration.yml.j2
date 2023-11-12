@@ -28,12 +28,8 @@ access_control:
   rules:
     - domain: {{ authelia_subdomain }}
       policy: bypass
-{% for service in services %}
-{% if service.external | default(false) %}
-    - domain: {{ service.subdomain }}
+    - domain: '*.{{ domain }}'
       policy: two_factor
-{% endif %}
-{% endfor %}
 
 session:
   name: authelia_session
