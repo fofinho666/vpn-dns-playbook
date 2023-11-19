@@ -2,9 +2,5 @@
 - name: Restart adguard-unbound
   docker_container:
     name: adguard-unbound
+    state: started
     restart: yes
-
-- name: Restart systemd-resolved
-  systemd:
-    name: systemd-resolved
-    state: restarted

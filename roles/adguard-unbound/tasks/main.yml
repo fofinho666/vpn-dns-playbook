@@ -3,8 +3,8 @@
   file:
     path: "{{ docker_dir }}/adguard-unbound-build"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ uid }}"
+    group: "{{ gid }}"
     mode: "0755"
 
 - name: Copy content of directory 'adguard-unbound-build'
@@ -18,6 +18,7 @@
     build:
       path: "{{ docker_dir }}/adguard-unbound-build"
     source: build
+  notify: Restart adguard-unbound
 
 - name: Create the adguard-unbound config folders
   file:
@@ -29,17 +30,14 @@
   loop:
     - adguard-unbound
     - adguard-unbound/adguard
-    - adguard-unbound/dnscrypt-proxy
     - adguard-unbound/adguard/work
     - adguard-unbound/adguard/conf
+    - adguard-unbound/dnscrypt-proxy
 
 - name: Copy Adguard config
   copy:
     src: AdGuardHome.yaml
     dest: "{{ docker_dir }}/adguard-unbound/adguard/conf/AdGuardHome.yaml"
-    owner: "{{ uid }}"
-    group: "{{ gid }}"
-    mode: "0644"
   notify: Restart adguard-unbound
 
 - name: Template the dnscrypt-proxy config
@@ -51,12 +49,16 @@
     mode: "0644"
   notify: Restart adguard-unbound
 
+- name: Stop systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: stopped
+
 - name: Disable DNSStubListener
   lineinfile:
     path: /etc/systemd/resolved.conf
     line: DNSStubListener=no
     regexp: ^#?DNSStubListener=(yes|no)$
-  notify: Restart systemd-resolved
 
 - name: Make sure the adguard-unbound container is created and running
   docker_container:
@@ -75,3 +77,8 @@
       - "{{ dns_port }}:53/udp"
       - "{{ dns_port }}:53/tcp"
       - "{{ bootp_server_port }}:67/udp"
+
+- name: Start systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: started
