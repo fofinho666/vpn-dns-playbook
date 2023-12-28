@@ -54,7 +54,7 @@ all:
     bootp_server_port: "67"
 
     ufw_ports:
-      - port: "{{ wireguard_port }}"
+      - port: "{{ wireguard_tunnel_port }}"
         proto: udp
       - port: "{{ http_port }}"
         proto: tcp

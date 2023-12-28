@@ -17,10 +17,10 @@
     restart: yes
     env:
       WG_HOST: "{{ wireguard_subdomain }}"
-      WG_PORT: "{{ wireguard_port }}"
+      WG_PORT: "{{ wireguard_tunnel_port }}"
       WG_DEFAULT_DNS: "{{ adguard_docker_address }}"
     ports:
-      - "{{ wireguard_port }}:51820/udp"
+      - "{{ wireguard_tunnel_port }}:51820/udp"
     volumes:
       - "{{ docker_dir }}/wireguard:/etc/wireguard"
     restart_policy: unless-stopped
