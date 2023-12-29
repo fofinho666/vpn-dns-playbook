@@ -6,7 +6,7 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [AdGuardHome](https://github.com/AdguardTeam/AdGuardHome) and [Unbound](https://github.com/NLnetLabs/unbound) for DNS resolver, DNS-over-HTTPS and ad-blocking
 - [Authelia](https://github.com/authelia/authelia) for two-factor authentication
 - [DDclient](https://github.com/ddclient/ddclient) to update the Dynamic DNS
-- [BunkerWeb](https://github.com/bunkerity/bunkerweb) for reverse proxy 
+- [Nginx Proxy Manager](https://nginxproxymanager.com) for reverse proxy 
 - [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely 
 - [Homer Dashboard](https://github.com/bastienwirtz/homer) to index our services
 ## Requirements 
@@ -24,9 +24,6 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - Setup secret_services vault (optional):
   - Create a `secret_services.yml` file base on `secret_services_example.yml`, and fill it with real data
   - Encrypt it with `ansible-vault encrypt secret_services.yml`
-
-### Reverse-proxy other services
-To add more services to your setup. Add them to the `secret_services` in `secret_services.yml`. And re-run `ansible-playbook run.yml -t bunkerweb`
 
 The each service should declare the following fields:
 - `name` (mandatory) - the service name
@@ -59,7 +56,7 @@ To see this email. SSH into your VPN server and enter: `show_2fa`
 ### Logs
 Most of this runs on docker containers, to see the logs of them run: `sudo docker logs -f <container name>` .  
 The container names are:
-- BunkerWeb -> `bunkerweb`
+- Nginx Proxy Manager -> `nginx-proxy-manager`
 - Authelia -> `authelia`
 - AdGuardHome -> `adguard-unbound`
 - WireGuard -> `wg-easy`     

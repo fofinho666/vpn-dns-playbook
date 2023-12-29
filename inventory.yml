@@ -6,6 +6,8 @@ all:
       ansible_user: "{{ user}}"
 
   vars:
+    timestamp: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
+
     docker_users:
       - "{{ user}}"
 
@@ -24,6 +26,11 @@ all:
       subdomain: "auth.{{ domain }}"
       forward_host: authelia
       forward_port: 9091
+    nginx-proxy-manager:
+      docker_address: 10.8.2.5
+      subdomain: "nginx.{{ domain }}"
+      forward_host: nginx-proxy-manager
+      forward_port: 81
     portainer:
       docker_address: 10.8.2.7
       subdomain: "portainer.{{ domain }}"
@@ -58,6 +65,8 @@ all:
     ufw_ports:
       - port: "{{ wireguard.tunnel_port }}"
         proto: udp
+      - port: "{{ nginx_proxy_manager.forward_port }}"
+        proto: tcp
       - port: "{{ http_port }}"
         proto: tcp
       - port: "{{ https_port }}"

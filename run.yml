@@ -50,10 +50,10 @@
     - role: portainer
       tags:
         - portainer
-    
-    - role: bunkerweb
+
+    - role: nginx-proxy-manager
       tags:
-        - bunkerweb
+        - nginx
 
     - role: homer
       tags:
