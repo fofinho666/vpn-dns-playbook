@@ -6,7 +6,7 @@
     pull: yes
     networks:
       - name: docker_network
-        ipv4_address: "{{ portainer_docker_address }}"
+        ipv4_address: "{{ portainer.docker_address }}"
     state: started
     restart: yes
     volumes:

@@ -4,7 +4,7 @@
 ###############################################################
 
 jwt_secret: {{ jwt_secret }}
-default_redirection_url: https://{{ authelia_subdomain }}
+default_redirection_url: https://{{ authelia.subdomain }}
 
 ntp:
   disable_failure: true
@@ -26,7 +26,7 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    - domain: {{ authelia_subdomain }}
+    - domain: {{ authelia.subdomain }}
       policy: bypass
     - domain: '*.{{ domain }}'
       policy: two_factor

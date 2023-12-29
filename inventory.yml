@@ -8,31 +8,6 @@ all:
   vars:
     docker_users:
       - "{{ user}}"
-      
-    authelia_subdomain: "auth.{{ domain }}"
-
-    wireguard_subdomain: "wg.{{ domain }}"
-    wireguard_subnet: 10.8.0.x
-    wireguard_ip_range: 10.8.0.0/24
-
-    default_services:
-      - name: Wireguard
-        subdomain: "{{ wireguard_subdomain }}"
-        url: http://wireguard:51821
-        external: true
-      - name: Portainer
-        subdomain: "portainer.{{ domain }}"
-        url: http://portainer:9000
-        external: true
-      - name: AdGuard
-        subdomain: "adguard.{{ domain }}"
-        url: http://adguard-unbound:3000
-        use_cors: true
-
-    services: "{{ default_services + (secret_services | default([])) }}"
-
-    # It can be "quad9" "google" or "cloudflare"
-    dns_nameservers: cloudflare
 
     docker_dir: /opt/docker
 
@@ -40,13 +15,40 @@ all:
     docker_network_subnet: 10.8.2.0/24
     docker_ip_range: 10.8.2.0/24
     docker_gateway: 10.8.2.1
-    adguard_docker_address: 10.8.2.2
-    redis_docker_address: 10.8.2.3
-    authelia_docker_address: 10.8.2.4
-    nginx_docker_address: 10.8.2.5
-    wireguard_docker_address: 10.8.2.6
-    portainer_docker_address: 10.8.2.7
-    homer_docker_address: 10.8.2.8
+
+    # services:
+    redis:
+      docker_address: 10.8.2.3
+    authelia:
+      docker_address: 10.8.2.4
+      subdomain: "auth.{{ domain }}"
+      forward_host: authelia
+      forward_port: 9091
+    portainer:
+      docker_address: 10.8.2.7
+      subdomain: "portainer.{{ domain }}"
+      forward_host: portainer
+      forward_port: 9000
+    wireguard:
+      docker_address: 10.8.2.6
+      subdomain: "wg.{{ domain }}"
+      forward_host: wireguard
+      forward_port: 51821
+      subnet: 10.8.0.x
+      tunnel_port: "{{ wireguard_tunnel_port }}"
+    adguard:
+      docker_address: 10.8.2.2
+      subdomain: "adguard.{{ domain }}"
+      forward_host: adguard-unbound
+      forward_port: 3000
+    homer:
+      docker_address: 10.8.2.8
+      subdomain: "{{ domain }}"
+      forward_host: homer
+      forward_port: 8080
+
+    # It can be "quad9" "google" or "cloudflare"
+    dns_nameservers: cloudflare
 
     http_port: "80"
     https_port: "443"
@@ -54,7 +56,7 @@ all:
     bootp_server_port: "67"
 
     ufw_ports:
-      - port: "{{ wireguard_tunnel_port }}"
+      - port: "{{ wireguard.tunnel_port }}"
         proto: udp
       - port: "{{ http_port }}"
         proto: tcp
