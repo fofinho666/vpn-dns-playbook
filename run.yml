@@ -47,6 +47,10 @@
       tags:
         - wireguard
 
+    - role: watchtower
+      tags:
+        - watchtower
+
     - role: portainer
       tags:
         - portainer

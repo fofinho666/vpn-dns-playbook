@@ -1,0 +1,10 @@
+---
+- name: Make sure Watchtower is created and running
+  docker_container:
+    name: watchtower
+    image: containrrr/watchtower:latest
+    pull: yes
+    state: started
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart_policy: unless-stopped
