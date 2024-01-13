@@ -30,7 +30,7 @@
     image: jc21/nginx-proxy-manager:latest
     networks:
       - name: docker_network
-        ipv4_address: "{{ nginx-proxy-manager.docker_address }}"
+        ipv4_address: "{{ nginx_proxy_manager.docker_address }}"
     pull: yes
     restart: yes
     state: started
@@ -45,9 +45,14 @@
       - "{{ docker_dir }}/nginx-proxy-manager/letsencrypt:/etc/letsencrypt"
     restart_policy: unless-stopped
 
-- name: Check if SQL script with default data exists
+- name: Install SQLite3
+  apt:
+    name: sqlite3
+    state: present
+
+- name: Check if SQL script with default data status
   stat:
-    path: /data/default_data.sql
+    path: "{{ docker_dir }}/nginx-proxy-manager/data/default_data.sql"
   register: default_data_file
 
 - name: Build and copy SQL script with default data
@@ -56,14 +61,8 @@
     dest: "{{ docker_dir }}/nginx-proxy-manager/data/default_data.sql"
   when: not default_data_file.stat.exists
   
-- name: Install sqlite3 in container
-  docker_exec:
-    container: nginx-proxy-manager
-    command: apt-get update && apt-get install -y sqlite3
-  when: not default_data_file.stat.exists
-
-- name: Run SQL script with default data against database in container
-  docker_exec:
-    container: nginx-proxy-manager
-    command: sqlite3 /data/database.sqlite < /data/default_data.sql
+- name: Restore the default data
+  shell: sqlite3 database.sqlite < default_data.sql
+  args:
+    chdir: "{{ docker_dir }}/nginx-proxy-manager/data/"
   when: not default_data_file.stat.exists

@@ -26,7 +26,7 @@ all:
       subdomain: "auth.{{ domain }}"
       forward_host: authelia
       forward_port: 9091
-    nginx-proxy-manager:
+    nginx_proxy_manager:
       docker_address: 10.8.2.5
       subdomain: "nginx.{{ domain }}"
       forward_host: nginx-proxy-manager
