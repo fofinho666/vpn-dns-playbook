@@ -53,6 +53,9 @@ all:
       subdomain: "{{ domain }}"
       forward_host: homer
       forward_port: 8080
+    watchtower:
+      docker_address: 10.8.2.9
+
 
     # It can be "quad9" "google" or "cloudflare"
     dns_nameservers: cloudflare

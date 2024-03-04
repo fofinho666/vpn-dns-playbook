@@ -4,6 +4,9 @@
     name: watchtower
     image: containrrr/watchtower:latest
     pull: yes
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ watchtower.docker_address }}"
     state: started
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
