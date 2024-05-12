@@ -14,38 +14,38 @@ all:
     docker_dir: /opt/docker
 
     # docker_network
-    docker_network_subnet: 10.8.2.0/24
     docker_ip_range: 10.8.2.0/24
+    docker_network_subnet: "{{ docker_ip_range }}"
     docker_gateway: 10.8.2.1
+
+    local_ip_range: 192.168.0.0/16
+    wireguard_ip_range: 10.8.0.0/24
 
     # services:
     redis:
       docker_address: 10.8.2.3
     authelia:
       docker_address: 10.8.2.4
-      subdomain: "auth.{{ domain }}"
+      subdomain: auth
       forward_host: authelia
       forward_port: 9091
-    nginx_proxy_manager:
+    swag:
       docker_address: 10.8.2.5
-      subdomain: "nginx.{{ domain }}"
-      forward_host: nginx-proxy-manager
-      forward_port: 81
     portainer:
       docker_address: 10.8.2.7
-      subdomain: "portainer.{{ domain }}"
+      subdomain: portainer
       forward_host: portainer
       forward_port: 9000
     wireguard:
       docker_address: 10.8.2.6
-      subdomain: "wg.{{ domain }}"
+      subdomain: wg
       forward_host: wireguard
       forward_port: 51821
       subnet: 10.8.0.x
       tunnel_port: "{{ wireguard_tunnel_port }}"
     adguard:
       docker_address: 10.8.2.2
-      subdomain: "adguard.{{ domain }}"
+      subdomain: adguard
       forward_host: adguard-unbound
       forward_port: 3000
     homer:

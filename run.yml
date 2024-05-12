@@ -55,9 +55,9 @@
       tags:
         - portainer
 
-    - role: nginx-proxy-manager
+    - role: swag
       tags:
-        - nginx
+        - swag
 
     - role: homer
       tags:

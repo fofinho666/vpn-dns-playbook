@@ -1,0 +1,48 @@
+---
+- name: Create the folder
+  file:
+    path: "{{ docker_dir }}/swag/nginx/{{ item }}"
+    state: directory
+    recurse: yes
+  loop:
+    - snippets
+    - proxy-confs
+
+- name: Copy nginx files
+  copy:
+    src: nginx/
+    dest: "{{ docker_dir }}/swag/nginx/"
+  
+- name: Build and copy templates
+  template:
+    src: "{{ item }}"
+    dest: "{{ docker_dir }}/swag/{{ item }}"
+  loop:
+    - .env
+    - nginx/proxy-confs/adguard.subdomain.conf
+    - nginx/proxy-confs/auth.subdomain.conf
+    - nginx/proxy-confs/portainer.subdomain.conf
+    - nginx/proxy-confs/wg.subdomain.conf
+    - nginx/snippets/authelia-authrequest.conf
+    - nginx/snippets/authelia-location.conf
+    - nginx/site-confs/default.conf
+
+- name: Make sure SWAG container is created and running
+  docker_container:
+    name: swag
+    image: lscr.io/linuxserver/swag:latest
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ swag.docker_address }}"
+    pull: yes
+    restart: yes
+    state: started
+    env_file: "{{ docker_dir }}/swag/.env"
+    capabilities:
+      - NET_ADMIN
+    ports:
+      - "{{ http_port }}:80"
+      - "{{ https_port }}:443"
+    volumes:
+      - "{{ docker_dir }}/swag:/config"
+    restart_policy: unless-stopped
