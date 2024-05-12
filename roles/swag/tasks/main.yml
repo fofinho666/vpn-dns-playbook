@@ -1,4 +1,19 @@
 ---
+- name: Get info on existing swag container
+  docker_container_info:
+    name: swag
+  register: result
+
+- name: Keep SUBDOMAINS env
+  set_fact:
+    subdomains_value: "{{ result.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') }}"
+  when: result.exists
+
+- name: Generate default SUBDOMAINS env
+  set_fact:
+    subdomains_value: "{{ authelia.subdomain }}, {{ portainer.subdomain }}, {{ wireguard.subdomain }}, {{ adguard.subdomain }}"
+  when: not result.exists
+
 - name: Create the folder
   file:
     path: "{{ docker_dir }}/swag/nginx/{{ item }}"
