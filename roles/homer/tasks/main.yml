@@ -53,12 +53,12 @@
 
 - name: Check if homer config file exists
   stat:
-    path: "{{ user_home }}/homer/config.yml"
+    path: "{{ homer.config_file }}"
   register: config_file
 
 - name: Build and copy the default homer config file
   template:
-    src: files/config.yml
+    src: config.yml
     dest: "{{ user_home }}/homer/"
     owner: "{{ uid }}"
     group: gpio

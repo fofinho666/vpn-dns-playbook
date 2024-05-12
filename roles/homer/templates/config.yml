@@ -52,18 +52,18 @@ services:
       - name: Portainer
         logo: assets/logos/svg/portainer.svg
         subtitle: Container manager
-        url: https://{{ portainer.subdomain }}
+        url: https://{{ portainer.subdomain }}.{{ domain }}
         target: _blank
       
       - name: AdGuard Home
         logo: assets/logos/svg/adguardhome.svg
         subtitle: Recursive DNS resolver and AdBlocker
-        url:  https://{{ adguard.subdomain }}
+        url:  https://{{ adguard.subdomain }}.{{ domain }}
         type: AdGuardHome
         target: _blank
       
       - name: Wireguard
         logo: assets/logos/png/wireguard.png
         subtitle: Manage VPN clients
-        url:  https://{{ wireguard.subdomain }}
+        url:  https://{{ wireguard.subdomain }}.{{ domain }}
         target: _blank

@@ -53,6 +53,7 @@ all:
       subdomain: "{{ domain }}"
       forward_host: homer
       forward_port: 8080
+      config_file: "{{ user_home }}/homer/config.yml"
     watchtower:
       docker_address: 10.8.2.9
 
