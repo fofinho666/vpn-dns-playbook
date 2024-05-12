@@ -6,7 +6,7 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [AdGuardHome](https://github.com/AdguardTeam/AdGuardHome) and [Unbound](https://github.com/NLnetLabs/unbound) for DNS resolver, DNS-over-HTTPS and ad-blocking
 - [Authelia](https://github.com/authelia/authelia) for two-factor authentication
 - [DDclient](https://github.com/ddclient/ddclient) to update the Dynamic DNS
-- [Nginx Proxy Manager](https://nginxproxymanager.com) for reverse proxy 
+- [SWAG](https://github.com/linuxserver/docker-swag) for reverse proxy 
 - [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely 
 - [Homer Dashboard](https://github.com/bastienwirtz/homer) to index our services
 ## Requirements 
@@ -56,7 +56,7 @@ To see this email. SSH into your VPN server and enter: `show_2fa`
 ### Logs
 Most of this runs on docker containers, to see the logs of them run: `sudo docker logs -f <container name>` .  
 The container names are:
-- Nginx Proxy Manager -> `nginx-proxy-manager`
+- SWAG -> `swag`
 - Authelia -> `authelia`
 - AdGuardHome -> `adguard-unbound`
 - WireGuard -> `wg-easy`     
