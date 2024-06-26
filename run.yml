@@ -5,7 +5,6 @@
 
   vars_files:
     - secret.yml
-    - secret_services.yml
 
   pre_tasks:
     - name: Get User and Group IDs

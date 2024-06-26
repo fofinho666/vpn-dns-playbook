@@ -21,17 +21,6 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - Setup ansible vault:
   - Create a `secret.yml` file based on `secret_example.yml`, and fill it with real data
   - Encrypt it with `ansible-vault encrypt secret.yml`
-- Setup secret_services vault (optional):
-  - Create a `secret_services.yml` file base on `secret_services_example.yml`, and fill it with real data
-  - Encrypt it with `ansible-vault encrypt secret_services.yml`
-
-The each service should declare the following fields:
-- `name` (mandatory) - the service name
-- `url` (mandatory) - the service url on your local network
-- `use_cors` (optional) - if the service should use CORS, false by default
-- `external` (optional) - if the service should be externally exposed, false by default
-
-Check `secret_services_example.yml` for an example
 
 ### Homer dashboard
 To add services or configure homer, you need to `ssh` into your server. All the homer files are at `~/homer`.
@@ -51,6 +40,9 @@ When setting up the 2fa for the first time. Authelia will inform you that it set
 This email will not be sent since there's no SMTP server :( 
 
 To see this email. SSH into your VPN server and enter: `show_2fa`
+
+### Add extra services
+Run `$ ansible-playbook add_new_service.yml -e service="<service name>" -e url=<url> -e subdomain=<subdomain>`
 
 ## Debug
 ### Logs

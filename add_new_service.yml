@@ -1,0 +1,129 @@
+---
+# ansible-playbook run_new_service.yml -e service=Octoprint -e url=http://192.168.1.86 -e subdomain=octoprint -e external=false  
+- name: Add new service to reverse proxy
+  hosts: server
+  become: true
+
+  vars_files:
+    - secret.yml
+
+  pre_tasks:
+    - name: Get User and Group IDs
+      getent:
+        database: passwd
+      tags:
+        - always
+
+    - name: Set User and Group IDs as facts
+      set_fact:
+        uid: "{{ getent_passwd[user].1 }}"
+        gid: "{{ getent_passwd[user].2 }}"
+        user_home: "{{ getent_passwd[user].4 }}"
+      tags:
+        - always
+  
+  tasks:
+    - name: "Processing new {{ service }} service "
+      set_fact:
+        service_host: "{{ url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
+        service_port: "{{ url.split('://')[-1].split(':')[1] | default('80') }}"
+        external: "{{ external | default(false) | bool }}" 
+         
+    - name: Get info on existing swag container
+      docker_container_info:
+        name: swag
+      register: swag_info
+
+    - name: Get SUBDOMAINS
+      set_fact:
+        subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
+    
+    - name: Check if {{ subdomain }} is already in SUBDOMAINS
+      set_fact:
+        subdomains_already_set: "{{ subdomain in subdomains }}"
+
+    - name: Keep SUBDOMAINS env
+      set_fact:
+        subdomains_value: "{{ subdomains | join(', ') }}"
+      when: subdomains_already_set
+
+    - name: Generate new SUBDOMAINS env
+      set_fact:
+        subdomains_value: "{{ subdomains | join(', ') }}, {{ subdomain }}"
+      when: not subdomains_already_set
+
+    - name: "Create new proxy-conf for {{ service }} service internally"
+      copy:
+        content: |
+          server {
+              listen 443 ssl http2;
+              listen [::]:443 ssl http2;
+          
+              server_name {{ subdomain }}.*;
+          
+              include /config/nginx/ssl.conf;
+          
+              client_max_body_size 0;
+
+              location / {
+                  include /config/nginx/proxy.conf;
+                  include /config/nginx/resolver.conf;
+                  set $upstream_app {{ service_host }};
+                  set $upstream_port {{ service_port }};
+                  set $upstream_proto http;
+                  proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+                  proxy_set_header X-Scheme https;
+
+                  allow {{ local_ip_range }};
+                  allow {{ docker_ip_range }};
+                  allow {{ wireguard_ip_range }};
+                  deny all;
+              }
+          }
+        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+      when: not external
+
+    - name: "Create new proxy-conf for {{ service }} service externally"
+      copy:
+        content: |
+          server {
+              # enable for Authelia 
+              include /config/nginx/snippets/authelia-location.conf;
+          
+              listen 443 ssl http2;
+              listen [::]:443 ssl http2;
+          
+              server_name {{ subdomain }}.*;
+          
+              include /config/nginx/ssl.conf;
+          
+              client_max_body_size 0;
+          
+              location / {
+                  # enable for Authelia 
+                  include /config/nginx/snippets/authelia-authrequest.conf;
+          
+                  include /config/nginx/proxy.conf;
+                  include /config/nginx/resolver.conf;
+                  set $upstream_app {{ service_host }};
+                  set $upstream_port {{ service_port }};
+                  set $upstream_proto http;
+                  proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+                  proxy_set_header X-Scheme https;
+              }
+          }
+        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+      when: external
+
+    - name: Build and copy swag environments 
+      template:
+        src: roles/swag/templates/.env
+        dest: "{{ docker_dir }}/swag/.env"
+
+    - name: Restart swag container
+      docker_container:
+        name: swag
+        state: started
+        restart: yes
+    
+    - debug: msg="{{ service }} service created - https://{{ subdomain }}.{{ domain }}"
