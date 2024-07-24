@@ -69,8 +69,6 @@ all:
     ufw_ports:
       - port: "{{ wireguard.tunnel_port }}"
         proto: udp
-      - port: "{{ nginx_proxy_manager.forward_port }}"
-        proto: tcp
       - port: "{{ http_port }}"
         proto: tcp
       - port: "{{ https_port }}"
