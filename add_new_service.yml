@@ -56,8 +56,9 @@
       copy:
         content: |
           server {
-              listen 443 ssl http2;
-              listen [::]:443 ssl http2;
+              listen 443 ssl;
+              listen [::]:443 ssl;
+              http2 on;
           
               server_name {{ subdomain }}.*;
           
@@ -65,12 +66,14 @@
           
               client_max_body_size 0;
 
+              set $upstream_app {{ service_host }};
+              set $upstream_port {{ service_port }};
+              set $upstream_proto http;
+
               location / {
                   include /config/nginx/proxy.conf;
                   include /config/nginx/resolver.conf;
-                  set $upstream_app {{ service_host }};
-                  set $upstream_port {{ service_port }};
-                  set $upstream_proto http;
+                  
                   proxy_pass $upstream_proto://$upstream_app:$upstream_port;
                   proxy_set_header X-Scheme https;
 
@@ -90,8 +93,8 @@
               # enable for Authelia 
               include /config/nginx/snippets/authelia-location.conf;
           
-              listen 443 ssl http2;
-              listen [::]:443 ssl http2;
+              listen 443 ssl;
+              listen [::]:443 ssl;
           
               server_name {{ subdomain }}.*;
           
@@ -99,15 +102,16 @@
           
               client_max_body_size 0;
           
+              set $upstream_app {{ service_host }};
+              set $upstream_port {{ service_port }};
+              set $upstream_proto http;
+
               location / {
                   # enable for Authelia 
                   include /config/nginx/snippets/authelia-authrequest.conf;
           
                   include /config/nginx/proxy.conf;
                   include /config/nginx/resolver.conf;
-                  set $upstream_app {{ service_host }};
-                  set $upstream_port {{ service_port }};
-                  set $upstream_proto http;
                   proxy_pass $upstream_proto://$upstream_app:$upstream_port;
                   proxy_set_header X-Scheme https;
               }
@@ -123,7 +127,21 @@
     - name: Restart swag container
       docker_container:
         name: swag
-        state: started
+        image: lscr.io/linuxserver/swag:latest
+        networks:
+          - name: docker_network
+            ipv4_address: "{{ swag.docker_address }}"
+        pull: yes
         restart: yes
-    
-    - debug: msg="{{ service }} service created - https://{{ subdomain }}.{{ domain }}"
+        state: started
+        env_file: "{{ docker_dir }}/swag/.env"
+        capabilities:
+          - NET_ADMIN
+        ports:
+          - "{{ http_port }}:80"
+          - "{{ https_port }}:443"
+        volumes:
+          - "{{ docker_dir }}/swag:/config"
+        restart_policy: unless-stopped
+
+    - debug: msg="{{ subdomain }} service created - https://{{ subdomain }}.{{ domain }}"
