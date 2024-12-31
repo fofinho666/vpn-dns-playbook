@@ -6,11 +6,11 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [AdGuardHome](https://github.com/AdguardTeam/AdGuardHome) and [Unbound](https://github.com/NLnetLabs/unbound) for DNS resolver, DNS-over-HTTPS and ad-blocking
 - [Authelia](https://github.com/authelia/authelia) for two-factor authentication
 - [DDclient](https://github.com/ddclient/ddclient) to update the Dynamic DNS
-- [SWAG](https://github.com/linuxserver/docker-swag) for reverse proxy 
-- [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely 
+- [SWAG](https://github.com/linuxserver/docker-swag) for reverse proxy
+- [Portainer](https://github.com/portainer/portainer) to manage docker containers remotely
 - [Homer Dashboard](https://github.com/bastienwirtz/homer) to index our services
-## Requirements 
-- **Raspberry Pi 4** with **Ubuntu server** installed 
+## Requirements
+- **Raspberry Pi 4** with **Ubuntu server** installed
 - Port `80`, `443` and the **wireguard port** opened in your NAT Router
 - Get and domain at [NameCheap](https://www.namecheap.com/) and setup [Dynamic DNS](https://www.namecheap.com/support/knowledgebase/article.aspx/36/11/how-do-i-start-using-dynamic-dns/)
 
@@ -31,29 +31,45 @@ Refer to [homer documentation](https://github.com/bastienwirtz/homer/blob/main/d
 - Run the hole playbook `ansible-playbook run.yml`
 - Run parts of the playbook `ansible-playbook run.yml -t <tag>`, check **run.yml** to know the available tags
 
-### Post-installation  
+### Post-installation
 - After running the playbook set this server as the default DNS server of your NAT router
 - Go to AdGuard and choose/add your DNS blocklists
 
 ## Two-factor authentication email
-When setting up the 2fa for the first time. Authelia will inform you that it set you an email.   
-This email will not be sent since there's no SMTP server :( 
+When setting up the 2fa for the first time. Authelia will inform you that it set you an email.
+This email will not be sent since there's no SMTP server :(
 
 To see this email. SSH into your VPN server and enter: `show_2fa`
 
-### Add extra services
-Run `$ ansible-playbook add_new_service.yml -e service="<service name>" -e url=<url> -e subdomain=<subdomain>`
-
 ## Debug
 ### Logs
-Most of this runs on docker containers, to see the logs of them run: `sudo docker logs -f <container name>` .  
+Most of this runs on docker containers, to see the logs of them run: `sudo docker logs -f <container name>` .
 The container names are:
 - SWAG -> `swag`
 - Authelia -> `authelia`
 - AdGuardHome -> `adguard-unbound`
-- WireGuard -> `wg-easy`     
+- WireGuard -> `wg-easy`
 - Portainer -> `portainer`
-- Homer Dashboard -> `homer`                                                                                                          
+- Homer Dashboard -> `homer`
 
-## Thanks  
-- Wolfgang for his [ansible-easy-vpn](https://github.com/notthebee/ansible-easy-vpn) playbook, from were I copy/past the most 
+## Thanks
+- Wolfgang for his [ansible-easy-vpn](https://github.com/notthebee/ansible-easy-vpn) playbook, from were I copy/past the most
+
+### Service Management
+#### Add a Service
+Run the following command to add a new service to the reverse proxy:
+```bash
+ansible-playbook add_new_service.yml -e service="<service name>" -e url=<url> -e subdomain=<subdomain>
+```
+
+#### Remove a Service
+To remove a service from the reverse proxy, use:
+```bash
+ansible-playbook remove_service.yml -e service="<service name>"
+```
+
+This will:
+- Remove the service from SWAG's subdomain configuration
+- Backup the existing proxy configuration file (if it exists)
+- Remove the proxy configuration file
+- Restart the SWAG container to apply changes

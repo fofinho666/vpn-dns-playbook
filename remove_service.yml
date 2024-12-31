@@ -1,0 +1,81 @@
+---
+# ansible-playbook remove_service.yml -e service=octoprint
+- name: Remove service from reverse proxy
+  hosts: server
+  become: true
+
+  vars_files:
+    - secret.yml
+
+  pre_tasks:
+    - name: Verify required variables
+      assert:
+        that:
+          - service is defined
+        fail_msg: "Missing required variable. Need: service"
+
+    - name: Get User and Group IDs
+      getent:
+        database: passwd
+      tags:
+        - always
+
+    - name: Set User and Group IDs as facts
+      set_fact:
+        uid: "{{ getent_passwd[user].1 }}"
+        gid: "{{ getent_passwd[user].2 }}"
+        user_home: "{{ getent_passwd[user].4 }}"
+      tags:
+        - always
+
+  tasks:
+    - name: Get info on existing swag container
+      docker_container_info:
+        name: swag
+      register: swag_info
+
+    - name: Get current SUBDOMAINS
+      set_fact:
+        subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
+
+    - name: Remove service from subdomains list
+      set_fact:
+        subdomains_value: "{{ (subdomains | reject('equalto', service) | list) | join(', ') }}"
+
+    - name: Backup existing configuration
+      copy:
+        src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf"
+        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf.bak"
+      when: ansible_path.exists("{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf")
+
+    - name: Remove proxy configuration file
+      file:
+        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf"
+        state: absent
+
+    - name: Build and copy swag environments
+      template:
+        src: roles/swag/templates/.env
+        dest: "{{ docker_dir }}/swag/.env"
+
+    - name: Restart swag container
+      docker_container:
+        name: swag
+        image: lscr.io/linuxserver/swag:latest
+        networks:
+          - name: docker_network
+            ipv4_address: "{{ swag.docker_address }}"
+        pull: yes
+        restart: yes
+        state: started
+        env_file: "{{ docker_dir }}/swag/.env"
+        capabilities:
+          - NET_ADMIN
+        ports:
+          - "{{ http_port }}:80"
+          - "{{ https_port }}:443"
+        volumes:
+          - "{{ docker_dir }}/swag:/config"
+        restart_policy: unless-stopped
+
+    - debug: msg="{{ service }} service removed from reverse proxy"
