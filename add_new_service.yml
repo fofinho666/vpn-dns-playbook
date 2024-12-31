@@ -1,5 +1,5 @@
 ---
-# ansible-playbook run_new_service.yml -e service=Octoprint -e url=http://192.168.1.86 -e subdomain=octoprint -e external=false  
+# ansible-playbook run_new_service.yml -e service=Octoprint -e url=http://192.168.1.86 -e subdomain=octoprint -e external=false
 - name: Add new service to reverse proxy
   hosts: server
   become: true
@@ -8,6 +8,20 @@
     - secret.yml
 
   pre_tasks:
+    - name: Verify required variables
+      assert:
+        that:
+          - service is defined
+          - url is defined
+          - subdomain is defined
+        fail_msg: "Missing required variables. Need: service, url, and subdomain"
+
+    - name: Validate URL format
+      assert:
+        that:
+          - url is match('^(http|https)://.+')
+        fail_msg: "URL must start with http:// or https://"
+
     - name: Get User and Group IDs
       getent:
         database: passwd
@@ -21,14 +35,14 @@
         user_home: "{{ getent_passwd[user].4 }}"
       tags:
         - always
-  
+
   tasks:
     - name: "Processing new {{ service }} service "
       set_fact:
         service_host: "{{ url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
         service_port: "{{ url.split('://')[-1].split(':')[1] | default('80') }}"
-        external: "{{ external | default(false) | bool }}" 
-         
+        external: "{{ external | default(false) | bool }}"
+
     - name: Get info on existing swag container
       docker_container_info:
         name: swag
@@ -37,7 +51,7 @@
     - name: Get SUBDOMAINS
       set_fact:
         subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
-    
+
     - name: Check if {{ subdomain }} is already in SUBDOMAINS
       set_fact:
         subdomains_already_set: "{{ subdomain in subdomains }}"
@@ -52,6 +66,12 @@
         subdomains_value: "{{ subdomains | join(', ') }}, {{ subdomain }}"
       when: not subdomains_already_set
 
+    - name: Backup existing configuration
+      copy:
+        src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
+      when: ansible_path.exists("{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf")
+
     - name: "Create new proxy-conf for {{ service }} service internally"
       copy:
         content: |
@@ -59,11 +79,11 @@
               listen 443 ssl;
               listen [::]:443 ssl;
               http2 on;
-          
+
               server_name {{ subdomain }}.*;
-          
+
               include /config/nginx/ssl.conf;
-          
+
               client_max_body_size 0;
 
               set $upstream_app {{ service_host }};
@@ -73,7 +93,7 @@
               location / {
                   include /config/nginx/proxy.conf;
                   include /config/nginx/resolver.conf;
-                  
+
                   proxy_pass $upstream_proto://$upstream_app:$upstream_port;
                   proxy_set_header X-Scheme https;
 
@@ -90,26 +110,26 @@
       copy:
         content: |
           server {
-              # enable for Authelia 
+              # enable for Authelia
               include /config/nginx/snippets/authelia-location.conf;
-          
+
               listen 443 ssl;
               listen [::]:443 ssl;
-          
+
               server_name {{ subdomain }}.*;
-          
+
               include /config/nginx/ssl.conf;
-          
+
               client_max_body_size 0;
-          
+
               set $upstream_app {{ service_host }};
               set $upstream_port {{ service_port }};
               set $upstream_proto http;
 
               location / {
-                  # enable for Authelia 
+                  # enable for Authelia
                   include /config/nginx/snippets/authelia-authrequest.conf;
-          
+
                   include /config/nginx/proxy.conf;
                   include /config/nginx/resolver.conf;
                   proxy_pass $upstream_proto://$upstream_app:$upstream_port;
@@ -119,7 +139,7 @@
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
       when: external
 
-    - name: Build and copy swag environments 
+    - name: Build and copy swag environments
       template:
         src: roles/swag/templates/.env
         dest: "{{ docker_dir }}/swag/.env"
