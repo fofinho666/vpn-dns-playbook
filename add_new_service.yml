@@ -11,15 +11,14 @@
     - name: Verify required variables
       assert:
         that:
-          - service is defined
-          - url is defined
           - subdomain is defined
-        fail_msg: "Missing required variables. Need: service, url, and subdomain"
+          - service_url is defined
+        fail_msg: "Missing required variables. Need: subdomain and service_url"
 
     - name: Validate URL format
       assert:
         that:
-          - url is match('^(http|https)://.+')
+          - service_url is match('^(http|https)://.+')
         fail_msg: "URL must start with http:// or https://"
 
     - name: Get User and Group IDs
@@ -37,10 +36,10 @@
         - always
 
   tasks:
-    - name: "Processing new {{ service }} service "
+    - name: "Processing new {{ subdomain }} service "
       set_fact:
-        service_host: "{{ url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
-        service_port: "{{ url.split('://')[-1].split(':')[1] | default('80') }}"
+        service_host: "{{ service_url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
+        service_port: "{{ service_url.split('://')[-1].split(':')[1] | default('80') }}"
         external: "{{ external | default(false) | bool }}"
 
     - name: Get info on existing swag container
@@ -66,13 +65,18 @@
         subdomains_value: "{{ subdomains | join(', ') }}, {{ subdomain }}"
       when: not subdomains_already_set
 
+    - name: Check if configuration file exists
+      stat:
+        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+      register: config_file
+
     - name: Backup existing configuration
       copy:
         src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
-      when: ansible_path.exists("{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf")
+      when: config_file.stat.exists
 
-    - name: "Create new proxy-conf for {{ service }} service internally"
+    - name: "Create new proxy-conf for {{ subdomain }} service internally"
       copy:
         content: |
           server {
@@ -106,7 +110,7 @@
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
       when: not external
 
-    - name: "Create new proxy-conf for {{ service }} service externally"
+    - name: "Create new proxy-conf for {{ subdomain }} service externally"
       copy:
         content: |
           server {

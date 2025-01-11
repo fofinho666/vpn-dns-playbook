@@ -59,8 +59,21 @@ The container names are:
 #### Add a Service
 Run the following command to add a new service to the reverse proxy:
 ```bash
-ansible-playbook add_new_service.yml -e service="<service name>" -e url=<url> -e subdomain=<subdomain>
+ansible-playbook add_new_service.yml -e service_url=<url> -e subdomain=<subdomain> -e external=<true|false>
 ```
+
+Example:
+```bash
+# Internal service (only accessible through VPN/local network)
+ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint
+
+# External service (accessible from internet with Authelia protection)
+ansible-playbook add_new_service.yml -e service_url=http://192.168.1.87 -e subdomain=nextcloud -e external=true
+```
+
+The `external` flag determines:
+- `false` (default): Service only accessible through VPN/local network
+- `true`: Service accessible from internet with Authelia 2FA protection
 
 #### Remove a Service
 To remove a service from the reverse proxy, use:
