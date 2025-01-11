@@ -78,7 +78,12 @@ The `external` flag determines:
 #### Remove a Service
 To remove a service from the reverse proxy, use:
 ```bash
-ansible-playbook remove_service.yml -e service="<service name>"
+ansible-playbook remove_service.yml -e subdomain=<subdomain>
+```
+
+Example:
+```bash
+ansible-playbook remove_service.yml -e subdomain=octoprint
 ```
 
 This will:

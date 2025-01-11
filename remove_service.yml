@@ -1,6 +1,6 @@
 ---
-# ansible-playbook remove_service.yml -e service=octoprint
-- name: Remove service from reverse proxy
+# ansible-playbook remove_service.yml -e subdomain=octoprint
+- name: Remove subdomain from reverse proxy
   hosts: server
   become: true
 
@@ -11,8 +11,8 @@
     - name: Verify required variables
       assert:
         that:
-          - service is defined
-        fail_msg: "Missing required variable. Need: service"
+          - subdomain is defined
+        fail_msg: "Missing required variable. Need: subdomain"
 
     - name: Get User and Group IDs
       getent:
@@ -38,19 +38,25 @@
       set_fact:
         subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
 
-    - name: Remove service from subdomains list
+    - name: Remove subdomain from subdomains list
       set_fact:
-        subdomains_value: "{{ (subdomains | reject('equalto', service) | list) | join(', ') }}"
+        subdomains_value: "{{ (subdomains | reject('equalto', subdomain) | list) | join(', ') }}"
+
+    - name: Check if configuration file exists
+      stat:
+        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+      register: config_file
 
     - name: Backup existing configuration
       copy:
-        src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf"
-        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf.bak"
-      when: ansible_path.exists("{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf")
+        src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
+        remote_src: yes
+      when: config_file.stat.exists
 
     - name: Remove proxy configuration file
       file:
-        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ service }}.subdomain.conf"
+        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
         state: absent
 
     - name: Build and copy swag environments
@@ -78,4 +84,4 @@
           - "{{ docker_dir }}/swag:/config"
         restart_policy: unless-stopped
 
-    - debug: msg="{{ service }} service removed from reverse proxy"
+    - debug: msg="{{ subdomain }} subdomain removed from reverse proxy"
