@@ -1,5 +1,9 @@
-
 ---
+- name: Install required Python packages
+  pip:
+    name: passlib
+    state: present
+
 - name: Create the config folder
   file:
     path: "{{ docker_dir }}/authelia"
