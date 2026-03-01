@@ -22,9 +22,9 @@
 
     - name: Set User and Group IDs as facts
       set_fact:
-        uid: "{{ getent_passwd[user].1 }}"
-        gid: "{{ getent_passwd[user].2 }}"
-        user_home: "{{ getent_passwd[user].4 }}"
+        uid: "{{ ansible_facts['getent_passwd'][user][1] }}"
+        gid: "{{ ansible_facts['getent_passwd'][user][2] }}"
+        user_home: "{{ ansible_facts['getent_passwd'][user][4] }}"
       tags:
         - always
 
