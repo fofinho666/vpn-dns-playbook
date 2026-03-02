@@ -6,7 +6,7 @@
 
 - name: Keep SUBDOMAINS env
   set_fact:
-    subdomains_value: "{{ result.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') }}"
+    subdomains_value: "{{ result.container.Config.Env | select('match', '^SUBDOMAINS=') | first | regex_replace('^SUBDOMAINS=', '') }}"
   when: result.exists
 
 - name: Generate default SUBDOMAINS env
@@ -22,6 +22,7 @@
   loop:
     - snippets
     - proxy-confs
+    - site-confs
 
 - name: Copy nginx files
   copy:
