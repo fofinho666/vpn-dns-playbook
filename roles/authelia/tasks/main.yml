@@ -1,8 +1,11 @@
 ---
-- name: Install required Python packages
+- name: Install required Python packages to render the templates
   pip:
     name: passlib
     state: present
+  delegate_to: localhost
+  become: false
+  run_once: true
 
 - name: Create the config folder
   file:
