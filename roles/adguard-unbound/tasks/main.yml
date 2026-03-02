@@ -34,10 +34,16 @@
     - adguard-unbound/adguard/conf
     - adguard-unbound/dnscrypt-proxy
 
-- name: Copy Adguard config
-  copy:
-    src: AdGuardHome.yaml
+- name: Check if Adguard config file exists
+  stat:
+    path: "{{ docker_dir }}/adguard-unbound/adguard/conf/AdGuardHome.yaml"
+  register: adguard_config_file
+
+- name: Build and copy the default Adguard config
+  template:
+    src: AdGuardHome.yaml.j2
     dest: "{{ docker_dir }}/adguard-unbound/adguard/conf/AdGuardHome.yaml"
+  when: not adguard_config_file.stat.exists
   notify: Restart adguard-unbound
 
 - name: Template the dnscrypt-proxy config

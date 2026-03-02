@@ -1,8 +1,5 @@
 FROM alpine:latest
 
-ARG TARGETARCH=arm
-ARG TARGETVARIANT=v6
- 
 RUN apk add --no-cache \
         libcap \
         curl \
@@ -15,14 +12,21 @@ RUN wget https://www.internic.net/domain/named.root -qO- >> /etc/unbound/root.hi
 
 COPY files/ /opt/
 
-RUN wget https://github.com/AdguardTeam/AdGuardHome/releases/latest/download/AdGuardHome_linux_${TARGETARCH}${TARGETVARIANT}.tar.gz >/dev/null 2>&1 \
-	&& mkdir -p /opt/adguardhome/conf /opt/adguardhome/work \
-	&& tar xf AdGuardHome_linux_${TARGETARCH}${TARGETVARIANT}.tar.gz ./AdGuardHome/AdGuardHome  --strip-components=2 -C /opt/adguardhome \
-	&& /bin/ash /opt/adguardhome \
-	&& chown -R nobody: /opt/adguardhome \
-	&& setcap 'CAP_NET_BIND_SERVICE=+eip CAP_NET_RAW=+eip' /opt/adguardhome/AdGuardHome \
-	&& chmod +x /opt/entrypoint.sh \
-	&& rm -rf /tmp/* /var/cache/apk/*
+RUN ARCH=$(uname -m) && \
+    case "$ARCH" in \
+        x86_64) ADGUARD_ARCH="amd64" ;; \
+        aarch64) ADGUARD_ARCH="arm64" ;; \
+        armv7l) ADGUARD_ARCH="armv7" ;; \
+        armv6l|arm*) ADGUARD_ARCH="armv6" ;; \
+        *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac && \
+    wget "https://github.com/AdguardTeam/AdGuardHome/releases/latest/download/AdGuardHome_linux_${ADGUARD_ARCH}.tar.gz" && \
+    mkdir -p /opt/adguardhome/conf /opt/adguardhome/work && \
+    tar xf "AdGuardHome_linux_${ADGUARD_ARCH}.tar.gz" ./AdGuardHome/AdGuardHome --strip-components=2 -C /opt/adguardhome && \
+    chown -R nobody: /opt/adguardhome && \
+    setcap 'CAP_NET_BIND_SERVICE=+eip CAP_NET_RAW=+eip' /opt/adguardhome/AdGuardHome && \
+    chmod +x /opt/entrypoint.sh && \
+    rm -rf /tmp/* /var/cache/apk/*
 
 WORKDIR /opt/adguardhome/work
 
