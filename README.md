@@ -11,7 +11,7 @@ Ansible playbook to setup a home VPN and DNS with 2fa 🥷
 - [Homer Dashboard](https://github.com/bastienwirtz/homer) to index our services
 ## Requirements
 - **Raspberry Pi 4** with **Ubuntu server** installed
-- Port `80`, `443` and the **wireguard port** opened in your NAT Router
+- Port `80` (TCP), `443` (TCP) and the **wireguard port** (UDP) opened in your NAT Router
 - Get and domain at [NameCheap](https://www.namecheap.com/) and setup [Dynamic DNS](https://www.namecheap.com/support/knowledgebase/article.aspx/36/11/how-do-i-start-using-dynamic-dns/)
 
 ## Setup

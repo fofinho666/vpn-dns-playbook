@@ -16,7 +16,7 @@
     state: started
     restart: yes
     env:
-      WG_HOST: "{{ wireguard.subdomain }}"
+      WG_HOST: "{{ domain }}"
       WG_PORT: "{{ wireguard.tunnel_port }}"
       WG_DEFAULT_DNS: "{{ adguard.docker_address }}"
     ports:
