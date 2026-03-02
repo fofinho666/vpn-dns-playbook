@@ -2,6 +2,8 @@
 - name: Setup vpn
   hosts: server
   become: true
+  vars:
+    is_raspberry_pi: "{{ 'raspberry pi' in (ansible_facts['product_name'] | default('') | lower) }}"
 
   vars_files:
     - secret.yml
@@ -33,26 +35,18 @@
     - role: ddclient
       tags:
         - ddclient
-    
-    - role: adguard-unbound
-      tags:
-        - adguard
-
-    - role: authelia
-      tags:
-        - authelia
 
     - role: wireguard
       tags:
         - wireguard
 
-    - role: watchtower
-      tags:
-        - watchtower
-
     - role: portainer
       tags:
         - portainer
+
+    - role: authelia
+      tags:
+        - authelia
 
     - role: swag
       tags:
@@ -61,3 +55,7 @@
     - role: homer
       tags:
         - homer
+
+    - role: adguard-unbound
+      tags:
+        - adguard
