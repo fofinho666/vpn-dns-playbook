@@ -1,16 +1,13 @@
-FROM alpine:3.18.4
+FROM alpine:latest
 
-ARG UNBOUND_VER=1.17.1-r1
-ARG DNSCRYPT_VER=2.1.4-r8
-ARG ADGUARDHOME_VER=v0.107.41
 ARG TARGETARCH=arm
 ARG TARGETVARIANT=v6
  
 RUN apk add --no-cache \
         libcap \
         curl \
-        unbound==${UNBOUND_VER} \
-        dnscrypt-proxy==${DNSCRYPT_VER}
+        unbound \
+        dnscrypt-proxy
 
 WORKDIR /tmp
 
@@ -18,8 +15,7 @@ RUN wget https://www.internic.net/domain/named.root -qO- >> /etc/unbound/root.hi
 
 COPY files/ /opt/
 
-#RUN wget https://static.adguard.com/adguardhome/release/AdGuardHome_linux_${TARGETARCH}${TARGETVARIANT}.tar.gz >/dev/null 2>&1 \
-RUN wget https://github.com/AdguardTeam/AdGuardHome/releases/download/${ADGUARDHOME_VER}/AdGuardHome_linux_${TARGETARCH}${TARGETVARIANT}.tar.gz >/dev/null 2>&1 \
+RUN wget https://github.com/AdguardTeam/AdGuardHome/releases/latest/download/AdGuardHome_linux_${TARGETARCH}${TARGETVARIANT}.tar.gz >/dev/null 2>&1 \
 	&& mkdir -p /opt/adguardhome/conf /opt/adguardhome/work \
 	&& tar xf AdGuardHome_linux_${TARGETARCH}${TARGETVARIANT}.tar.gz ./AdGuardHome/AdGuardHome  --strip-components=2 -C /opt/adguardhome \
 	&& /bin/ash /opt/adguardhome \
