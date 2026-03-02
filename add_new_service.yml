@@ -1,5 +1,5 @@
 ---
-# ansible-playbook run_new_service.yml -e service=Octoprint -e url=http://192.168.1.86 -e subdomain=octoprint -e external=false
+# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint -e external=false
 - name: Add new service to reverse proxy
   hosts: server
   become: true
@@ -39,7 +39,7 @@
     - name: "Processing new {{ subdomain }} service "
       set_fact:
         service_host: "{{ service_url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
-        service_port: "{{ service_url.split('://')[-1].split(':')[1] | default('80') }}"
+        service_port: "{{ service_url | regex_search('://[^/]+:([0-9]+)', '\\1') | first | default('80') }}"
         external: "{{ external | default(false) | bool }}"
 
     - name: Get info on existing swag container
@@ -143,29 +143,7 @@
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
       when: external
 
-    - name: Build and copy swag environments
-      template:
-        src: roles/swag/templates/.env
-        dest: "{{ docker_dir }}/swag/.env"
-
-    - name: Restart swag container
-      docker_container:
-        name: swag
-        image: lscr.io/linuxserver/swag:latest
-        networks:
-          - name: docker_network
-            ipv4_address: "{{ swag.docker_address }}"
-        pull: yes
-        restart: yes
-        state: started
-        env_file: "{{ docker_dir }}/swag/.env"
-        capabilities:
-          - NET_ADMIN
-        ports:
-          - "{{ http_port }}:80"
-          - "{{ https_port }}:443"
-        volumes:
-          - "{{ docker_dir }}/swag:/config"
-        restart_policy: unless-stopped
+    - name: Restart swag
+      include_tasks: tasks/restart_swag.yml
 
     - debug: msg="{{ subdomain }} service created - https://{{ subdomain }}.{{ domain }}"

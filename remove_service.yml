@@ -38,50 +38,34 @@
       set_fact:
         subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
 
-    - name: Remove subdomain from subdomains list
-      set_fact:
-        subdomains_value: "{{ (subdomains | reject('equalto', subdomain) | list) | join(', ') }}"
+    - name: Remove subdomain
+      when: subdomain in subdomains
+      block:
+        - name: Remove subdomain from subdomains list
+          set_fact:
+            subdomains_value: "{{ (subdomains | reject('equalto', subdomain) | list) | join(', ') }}"
 
-    - name: Check if configuration file exists
-      stat:
-        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
-      register: config_file
+        - name: Check if configuration file exists
+          stat:
+            path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+          register: config_file
 
-    - name: Backup existing configuration
-      copy:
-        src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
-        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
-        remote_src: yes
-      when: config_file.stat.exists
+        - name: Backup existing configuration
+          copy:
+            src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+            dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
+            remote_src: yes
+          when: config_file.stat.exists
 
-    - name: Remove proxy configuration file
-      file:
-        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
-        state: absent
+        - name: Remove proxy configuration file
+          file:
+            path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+            state: absent
 
-    - name: Build and copy swag environments
-      template:
-        src: roles/swag/templates/.env
-        dest: "{{ docker_dir }}/swag/.env"
+        - name: Restart swag
+          include_tasks: tasks/restart_swag.yml
 
-    - name: Restart swag container
-      docker_container:
-        name: swag
-        image: lscr.io/linuxserver/swag:latest
-        networks:
-          - name: docker_network
-            ipv4_address: "{{ swag.docker_address }}"
-        pull: yes
-        restart: yes
-        state: started
-        env_file: "{{ docker_dir }}/swag/.env"
-        capabilities:
-          - NET_ADMIN
-        ports:
-          - "{{ http_port }}:80"
-          - "{{ https_port }}:443"
-        volumes:
-          - "{{ docker_dir }}/swag:/config"
-        restart_policy: unless-stopped
+        - debug: msg="{{ subdomain }} subdomain removed from reverse proxy"
 
-    - debug: msg="{{ subdomain }} subdomain removed from reverse proxy"
+    - debug: msg="'{{ subdomain }}' not found in SUBDOMAINS list, nothing to do."
+      when: subdomain not in subdomains

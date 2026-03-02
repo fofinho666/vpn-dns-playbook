@@ -1,0 +1,25 @@
+---
+- name: Build and copy swag environments
+  template:
+    src: roles/swag/templates/.env
+    dest: "{{ docker_dir }}/swag/.env"
+
+- name: Restart swag container
+  docker_container:
+    name: swag
+    image: lscr.io/linuxserver/swag:latest
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ swag.docker_address }}"
+    pull: yes
+    restart: yes
+    state: started
+    env_file: "{{ docker_dir }}/swag/.env"
+    capabilities:
+      - NET_ADMIN
+    ports:
+      - "{{ http_port }}:80"
+      - "{{ https_port }}:443"
+    volumes:
+      - "{{ docker_dir }}/swag:/config"
+    restart_policy: unless-stopped
