@@ -27,7 +27,7 @@
     remote_src: yes
     dest: "{{ item.dest }}"
     owner: "{{ uid }}"
-    group: gpio
+    group: "{{ gid }}"
     mode: "0644" 
   loop:
     - src: "{{ user_home }}/homer-extra/homer-theme/assets/fonts"
@@ -48,7 +48,7 @@
     src: files/default_assets/
     dest: "{{ user_home }}/homer"
     owner: "{{ uid }}"
-    group: gpio
+    group: "{{ gid }}"
     mode: "0644"
 
 - name: Check if homer config file exists
@@ -61,7 +61,7 @@
     src: config.yml
     dest: "{{ user_home }}/homer/"
     owner: "{{ uid }}"
-    group: gpio
+    group: "{{ gid }}"
     mode: "0644"
   when: not config_file.stat.exists
 
@@ -71,7 +71,7 @@
     state: directory 
     recurse: yes
     owner: "{{ uid }}"
-    group: gpio
+    group: "{{ gid }}"
     mode: "0755"
   
 - name: Make sure the homer container is created and running
