@@ -2,10 +2,9 @@
 
 FILE=/opt/adguardhome/conf/AdGuardHome.yaml
 
-if [! test -f $FILE]
-then
-   curl -q -s -t 1 localhost:3000 > /dev/null && printf 'Waiting for config to be finished' || exit 1
-elif [PORT="$(cat $FILE | grep '^bind_port:' | cut -f2 -d' ')" && ! curl -q -t 1 localhost:$PORT 2> /dev/null]
-then
-    exit 1
+if [ ! -f "$FILE" ]; then
+    curl -q -s -m 1 localhost:3000 > /dev/null && printf 'Waiting for config to be finished' || exit 1
+else
+    PORT="$(grep '^bind_port:' "$FILE" | cut -f2 -d' ')"
+    curl -q -m 1 "localhost:$PORT" > /dev/null 2>&1 || exit 1
 fi

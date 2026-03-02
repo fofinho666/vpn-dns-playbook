@@ -1,23 +1,8 @@
 ---
-- name: Configure Docker daemon DNS
-  copy:
-    dest: /etc/docker/daemon.json
-    content: |
-      {
-        "dns": ["1.1.1.1", "8.8.8.8"]
-      }
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Restart Docker
-
-- name: Flush handlers to apply Docker DNS config immediately
-  meta: flush_handlers
-
 - name: Create the docker network
   docker_network:
     name: docker_network
     ipam_config:
       - subnet: "{{ docker_network_subnet }}"
-        gateway: "{{ docker_gateway }}" 
+        gateway: "{{ docker_gateway }}"
         iprange: "{{ docker_ip_range }}"
