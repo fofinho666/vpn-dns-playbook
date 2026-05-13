@@ -52,6 +52,7 @@ all:
 
     # It can be "quad9" "google" or "cloudflare"
     dns_nameservers: cloudflare
+    dns_server: 1.1.1.1
 
     http_port: "80"
     https_port: "443"
