@@ -43,11 +43,6 @@ all:
       forward_port: 51821
       subnet: 10.8.0.x
       tunnel_port: "{{ wireguard_tunnel_port }}"
-    adguard:
-      docker_address: 10.8.2.2
-      subdomain: adguard
-      forward_host: adguard-unbound
-      forward_port: 3000
     homer:
       docker_address: 10.8.2.8
       subdomain: "{{ domain }}"
@@ -60,8 +55,6 @@ all:
 
     http_port: "80"
     https_port: "443"
-    dns_port: "53"
-    bootp_server_port: "67"
 
     ufw_ports:
       - port: "{{ wireguard.tunnel_port }}"
@@ -72,7 +65,3 @@ all:
         proto: tcp
       - port: "{{ ssh_port }}"
         proto: tcp
-      - port: "{{ dns_port }}"
-        proto: any
-      - port: "{{ bootp_server_port }}"
-        proto: any

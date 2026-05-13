@@ -11,7 +11,7 @@
 
 - name: Generate default SUBDOMAINS env
   set_fact:
-    subdomains_value: "{{ authelia.subdomain }}, {{ portainer.subdomain }}, {{ wireguard.subdomain }}, {{ adguard.subdomain }}"
+    subdomains_value: "{{ authelia.subdomain }}, {{ portainer.subdomain }}, {{ wireguard.subdomain }}"
   when: not result.exists
 
 - name: Create the folder
@@ -35,7 +35,6 @@
     dest: "{{ docker_dir }}/swag/{{ item }}"
   loop:
     - .env
-    - nginx/proxy-confs/adguard.subdomain.conf
     - nginx/proxy-confs/auth.subdomain.conf
     - nginx/proxy-confs/portainer.subdomain.conf
     - nginx/proxy-confs/wg.subdomain.conf

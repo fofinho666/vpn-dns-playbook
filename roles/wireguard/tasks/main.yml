@@ -18,7 +18,7 @@
     env:
       WG_HOST: "{{ domain }}"
       WG_PORT: "{{ wireguard.tunnel_port }}"
-      WG_DEFAULT_DNS: "{{ adguard.docker_address }}"
+      WG_DEFAULT_DNS: "{{ dns_server }}"
     ports:
       - "{{ wireguard.tunnel_port }}:51820/udp"
     volumes:

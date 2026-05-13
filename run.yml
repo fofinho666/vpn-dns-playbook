@@ -55,7 +55,3 @@
     - role: homer
       tags:
         - homer
-
-    - role: adguard-unbound
-      tags:
-        - adguard

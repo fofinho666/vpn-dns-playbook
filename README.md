@@ -7,7 +7,6 @@ Ansible playbook to set up a home VPN and DNS server with two-factor authenticat
 | Service | Purpose |
 |---|---|
 | [WireGuard Easy](https://github.com/WeeJeWel/wg-easy) | VPN |
-| [AdGuardHome](https://github.com/AdguardTeam/AdGuardHome) + [Unbound](https://github.com/NLnetLabs/unbound) | DNS resolver, DNS-over-HTTPS, and ad-blocking |
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication |
 | [DDclient](https://github.com/ddclient/ddclient) | Dynamic DNS updates |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy |
@@ -45,9 +44,6 @@ ansible-playbook run.yml -t <tag>
 ```
 
 ### Post-installation
-
-1. Set this server as the default DNS server in your router
-2. Open AdGuard and choose/add your DNS blocklists
 
 ## Service Management
 
@@ -116,7 +112,6 @@ Container names:
 |---|---|
 | SWAG | `swag` |
 | Authelia | `authelia` |
-| AdGuardHome | `adguard-unbound` |
 | WireGuard | `wg-easy` |
 | Portainer | `portainer` |
 | Homer Dashboard | `homer` |
