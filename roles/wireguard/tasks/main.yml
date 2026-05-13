@@ -1,4 +1,21 @@
 ---
+- name: Load kernel modules required by WireGuard
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - wireguard
+    - ip_tables
+    - iptable_nat
+
+- name: Persist kernel modules across reboots
+  copy:
+    dest: /etc/modules-load.d/wireguard.conf
+    content: |
+      wireguard
+      ip_tables
+      iptable_nat
+
 - name: Make sure the Wireguard container is created and running
   docker_container:
     name: wireguard
