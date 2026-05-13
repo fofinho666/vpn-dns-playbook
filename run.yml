@@ -2,9 +2,6 @@
 - name: Setup vpn
   hosts: server
   become: true
-  vars:
-    is_raspberry_pi: "{{ 'raspberry pi' in (ansible_facts['product_name'] | default('') | lower) }}"
-
   vars_files:
     - secret.yml
 

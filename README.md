@@ -15,7 +15,7 @@ Ansible playbook to set up a home VPN and DNS server with two-factor authenticat
 
 ## Requirements
 
-- **Raspberry Pi 4** with **Ubuntu Server** installed
+- A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
 - The following ports open in your router's NAT settings:
   - `80` (TCP)
   - `443` (TCP)

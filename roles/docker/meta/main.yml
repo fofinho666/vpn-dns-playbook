@@ -1,6 +1,4 @@
 ---
 dependencies:
   - role: geerlingguy.pip
-    when: is_raspberry_pi
   - role: geerlingguy.docker
-    when: is_raspberry_pi
