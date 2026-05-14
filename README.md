@@ -8,7 +8,6 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
 |---|---|
 | [WireGuard Easy](https://github.com/WeeJeWel/wg-easy) | VPN |
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication |
-| [DDclient](https://github.com/ddclient/ddclient) | Dynamic DNS updates |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt certs |
 | [cloudflared](https://github.com/cloudflare/cloudflared) | Cloudflare Tunnel (bypasses CGNAT) |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |

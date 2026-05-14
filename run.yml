@@ -29,10 +29,6 @@
       tags:
         - ufw
 
-    - role: ddclient
-      tags:
-        - ddclient
-
     - role: wireguard
       tags:
         - wireguard
