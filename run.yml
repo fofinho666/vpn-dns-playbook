@@ -49,6 +49,10 @@
       tags:
         - swag
 
+    - role: cloudflared
+      tags:
+        - cloudflared
+
     - role: homer
       tags:
         - homer

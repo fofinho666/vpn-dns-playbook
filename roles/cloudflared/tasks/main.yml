@@ -1,0 +1,13 @@
+---
+- name: Make sure the cloudflared container is created and running
+  docker_container:
+    name: cloudflared
+    image: cloudflare/cloudflared:latest
+    pull: yes
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ cloudflared.docker_address }}"
+    command: tunnel --no-autoupdate run --token {{ cloudflare_tunnel_token }}
+    state: started
+    restart: yes
+    restart_policy: unless-stopped

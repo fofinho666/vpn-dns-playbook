@@ -1,6 +1,6 @@
 # VPN-DNS-Playbook
 
-Ansible playbook to set up a home VPN and DNS server with two-factor authentication.
+Ansible playbook to set up a home VPN server with two-factor authentication and secure remote access via Cloudflare Tunnel (works behind CGNAT — no open ports required).
 
 ## What it sets up
 
@@ -9,27 +9,43 @@ Ansible playbook to set up a home VPN and DNS server with two-factor authenticat
 | [WireGuard Easy](https://github.com/WeeJeWel/wg-easy) | VPN |
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication |
 | [DDclient](https://github.com/ddclient/ddclient) | Dynamic DNS updates |
-| [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy |
+| [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt certs |
+| [cloudflared](https://github.com/cloudflare/cloudflared) | Cloudflare Tunnel (bypasses CGNAT) |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
 
 ## Requirements
 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
-- The following ports open in your router's NAT settings:
-  - `80` (TCP)
-  - `443` (TCP)
-  - Your chosen WireGuard port (UDP)
-- A domain from [NameCheap](https://www.namecheap.com/) with [Dynamic DNS](https://www.namecheap.com/support/knowledgebase/article.aspx/36/11/how-do-i-start-using-dynamic-dns/) configured
+- Your chosen WireGuard port open in your router's NAT settings (UDP)
+- A domain managed on **Cloudflare DNS** (free account)
+- A Cloudflare API token with `Zone:DNS:Edit` permission
+- A Cloudflare Tunnel token (Zero Trust → Networks → Tunnels)
+
+> No ports 80/443 forwarding needed — all web traffic flows through the Cloudflare Tunnel.
 
 ## Setup
 
-1. Install Ansible: `brew install ansible`
+### 1. Cloudflare account
+
+1. Create a free account at [cloudflare.com](https://cloudflare.com) and add your domain
+2. In your domain registrar, point the nameservers to the two Cloudflare assigns (wait ~30 min)
+3. In **My Profile → API Tokens → Create Token**, use the "Edit zone DNS" template scoped to your domain — save the token as `cloudflare_api_token` in `secret.yml`
+4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`
+5. In the tunnel's **Public Hostnames** tab, add one entry per service (all pointing to `https://swag:443` with **No TLS Verify** enabled):
+
+| Subdomain | Domain | Service |
+|---|---|---|
+| `auth` | your domain | `https://swag:443` |
+| `portainer` | your domain | `https://swag:443` |
+| `wg` | your domain | `https://swag:443` |
+
+### 2. Ansible setup
+
+1. Install Ansible: `pip install ansible` (or `brew install ansible` on macOS)
 2. Install role dependencies: `ansible-galaxy install -r requirements.yml`
-3. Establish an SSH connection to your Ubuntu server
-4. Configure the Ansible vault:
-   - Copy `secret_example.yml` to `secret.yml` and fill in your values
-   - Encrypt it: `ansible-vault encrypt secret.yml`
+3. Ensure SSH access to your Ubuntu server
+4. Copy `secret_example.yml` to `secret.yml` and fill in your values
 
 ## Running the playbook
 
@@ -115,6 +131,7 @@ Container names:
 | WireGuard | `wg-easy` |
 | Portainer | `portainer` |
 | Homer Dashboard | `homer` |
+| Cloudflare Tunnel | `cloudflared` |
 
 ## Credits
 
