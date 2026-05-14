@@ -31,13 +31,15 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
 2. In your domain registrar, point the nameservers to the two Cloudflare assigns (wait ~30 min)
 3. In **My Profile → API Tokens → Create Token**, use the "Edit zone DNS" template scoped to your domain — save the token as `cloudflare_api_token` in `secret.yml`
 4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`
-5. In the tunnel's **Public Hostnames** tab, add one entry per service (all pointing to `https://swag:443` with **No TLS Verify** enabled):
+5. In the tunnel's **Public Hostnames** tab, add one entry per service:
 
 | Subdomain | Domain | Service |
 |---|---|---|
 | `auth` | your domain | `https://swag:443` |
 | `portainer` | your domain | `https://swag:443` |
 | `wg` | your domain | `https://swag:443` |
+
+   For each entry, expand **Additional application settings → TLS** and enable **No TLS Verify**. This is required because SWAG's certificate is issued for your domain, not the internal hostname `swag`.
 
 ### 2. Ansible setup
 
