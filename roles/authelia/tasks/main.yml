@@ -21,7 +21,7 @@
     dest: "{{ docker_dir }}/authelia/configuration.yml"
     owner: root
     group: root
-    mode: "0644"
+    mode: "0600"
 
 - name: Copy the users database
   template:
@@ -29,7 +29,7 @@
     dest: "{{ docker_dir }}/authelia/users_database.yml"
     owner: root
     group: root
-    mode: "0644"
+    mode: "0600"
 
 - name: Make sure the Redis container is created and running
   docker_container:
