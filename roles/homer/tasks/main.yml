@@ -14,7 +14,7 @@
     repo: "{{ item.repo }}"
     dest: "{{ item.dest }}"
     clone: yes
-    update: yes
+    update: no
   loop:
     - repo: https://github.com/WalkxCode/Homer-Theme.git
       dest: "{{ user_home }}/homer-extra/homer-theme"
