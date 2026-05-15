@@ -29,33 +29,19 @@
         - always
 
   tasks:
-    - name: Get info on existing swag container
-      docker_container_info:
-        name: swag
-      register: swag_info
+    - name: Check if configuration file exists
+      stat:
+        path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
+      register: config_file
 
-    - name: Get current SUBDOMAINS
-      set_fact:
-        subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
-
-    - name: Remove subdomain
-      when: subdomain in subdomains
+    - name: "Remove {{ subdomain }} service"
+      when: config_file.stat.exists
       block:
-        - name: Remove subdomain from subdomains list
-          set_fact:
-            subdomains_value: "{{ (subdomains | reject('equalto', subdomain) | list) | join(', ') }}"
-
-        - name: Check if configuration file exists
-          stat:
-            path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
-          register: config_file
-
         - name: Backup existing configuration
           copy:
             src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
             dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
             remote_src: yes
-          when: config_file.stat.exists
 
         - name: Remove proxy configuration file
           file:
@@ -67,5 +53,5 @@
 
         - debug: msg="{{ subdomain }} subdomain removed from reverse proxy"
 
-    - debug: msg="'{{ subdomain }}' not found in SUBDOMAINS list, nothing to do."
-      when: subdomain not in subdomains
+    - debug: msg="'{{ subdomain }}' config not found, nothing to do."
+      when: not config_file.stat.exists

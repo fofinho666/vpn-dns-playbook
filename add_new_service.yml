@@ -1,5 +1,5 @@
 ---
-# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint -e external=false
+# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint
 - name: Add new service to reverse proxy
   hosts: server
   become: true
@@ -36,34 +36,10 @@
         - always
 
   tasks:
-    - name: "Processing new {{ subdomain }} service "
+    - name: "Processing new {{ subdomain }} service"
       set_fact:
         service_host: "{{ service_url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
         service_port: "{{ service_url | regex_search('://[^/]+:([0-9]+)', '\\1') | first | default('80') }}"
-        external: "{{ external | default(false) | bool }}"
-
-    - name: Get info on existing swag container
-      docker_container_info:
-        name: swag
-      register: swag_info
-
-    - name: Get SUBDOMAINS
-      set_fact:
-        subdomains: "{{ (swag_info.container.Config.Env | json_query('[?starts_with(@, `SUBDOMAINS=`)] | [0]') | regex_replace('^SUBDOMAINS=', '') | split(', ')) }}"
-
-    - name: Check if {{ subdomain }} is already in SUBDOMAINS
-      set_fact:
-        subdomains_already_set: "{{ subdomain in subdomains }}"
-
-    - name: Keep SUBDOMAINS env
-      set_fact:
-        subdomains_value: "{{ subdomains | join(', ') }}"
-      when: subdomains_already_set
-
-    - name: Generate new SUBDOMAINS env
-      set_fact:
-        subdomains_value: "{{ subdomains | join(', ') }}, {{ subdomain }}"
-      when: not subdomains_already_set
 
     - name: Check if configuration file exists
       stat:
@@ -74,9 +50,10 @@
       copy:
         src: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf.bak"
+        remote_src: yes
       when: config_file.stat.exists
 
-    - name: "Create new proxy-conf for {{ subdomain }} service internally"
+    - name: "Create proxy-conf for {{ subdomain }}"
       copy:
         content: |
           server {
@@ -90,16 +67,14 @@
 
               client_max_body_size 0;
 
-              set $upstream_app {{ service_host }};
-              set $upstream_port {{ service_port }};
-              set $upstream_proto http;
-
               location / {
                   include /config/nginx/proxy.conf;
                   include /config/nginx/resolver.conf;
 
+                  set $upstream_app {{ service_host }};
+                  set $upstream_port {{ service_port }};
+                  set $upstream_proto http;
                   proxy_pass $upstream_proto://$upstream_app:$upstream_port;
-                  proxy_set_header X-Scheme https;
 
                   allow {{ local_ip_range }};
                   allow {{ docker_ip_range }};
@@ -108,40 +83,6 @@
               }
           }
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
-      when: not external
-
-    - name: "Create new proxy-conf for {{ subdomain }} service externally"
-      copy:
-        content: |
-          server {
-              # enable for Authelia
-              include /config/nginx/snippets/authelia-location.conf;
-
-              listen 443 ssl;
-              listen [::]:443 ssl;
-
-              server_name {{ subdomain }}.*;
-
-              include /config/nginx/ssl.conf;
-
-              client_max_body_size 0;
-
-              set $upstream_app {{ service_host }};
-              set $upstream_port {{ service_port }};
-              set $upstream_proto http;
-
-              location / {
-                  # enable for Authelia
-                  include /config/nginx/snippets/authelia-authrequest.conf;
-
-                  include /config/nginx/proxy.conf;
-                  include /config/nginx/resolver.conf;
-                  proxy_pass $upstream_proto://$upstream_app:$upstream_port;
-                  proxy_set_header X-Scheme https;
-              }
-          }
-        dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
-      when: external
 
     - name: Restart swag
       include_tasks: tasks/restart_swag.yml

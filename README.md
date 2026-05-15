@@ -64,40 +64,13 @@ ansible-playbook run.yml -t <tag>
 
 ## Service Management
 
-### Add a service
+### Add or remove a service
 
 ```bash
-ansible-playbook add_new_service.yml -e service_url=<url> -e subdomain=<subdomain> -e external=<true|false>
+./service.sh
 ```
 
-The `external` flag controls access:
-- `false` (default) — only accessible through VPN or local network
-- `true` — accessible from the internet, protected by Authelia 2FA
-
-Examples:
-```bash
-# Internal service (VPN/local only)
-ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint
-
-# External service (internet-accessible with 2FA)
-ansible-playbook add_new_service.yml -e service_url=http://192.168.1.87 -e subdomain=nextcloud -e external=true
-```
-
-### Remove a service
-
-```bash
-ansible-playbook remove_service.yml -e subdomain=<subdomain>
-```
-
-Example:
-```bash
-ansible-playbook remove_service.yml -e subdomain=octoprint
-```
-
-This will:
-- Remove the subdomain config from SWAG
-- Back up and delete the proxy configuration file
-- Restart SWAG to apply changes
+New services are always internal — accessible only from the local network or through WireGuard.
 
 ### Configure the Homer dashboard
 
