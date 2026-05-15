@@ -7,7 +7,7 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 
 prompt()  { read -rp "  $1: " "$2"; }
-confirm() { read -rp "  $1 [y/N]: " _ans; [[ "$_ans" =~ ^[Yy]$ ]]; }
+confirm() { echo -en "  $1 [y/N]: "; read -r _ans; [[ "$_ans" =~ ^[Yy]$ ]]; }
 
 echo
 echo -e "  ${BOLD}${CYAN}Service Manager${RESET}"
@@ -28,7 +28,7 @@ case $choice in
       echo -e "  ${RED}Error: subdomain cannot be empty${RESET}"; exit 1
     fi
     if [[ ! "$url" =~ ^https?:// ]]; then
-      echo -e "  ${RED}Error: URL must start with http:// or https://${RESET}"; exit 1
+      url="http://${url}"
     fi
 
     ansible-playbook add_new_service.yml \
