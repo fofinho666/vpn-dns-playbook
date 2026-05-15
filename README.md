@@ -18,7 +18,7 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
 - Your chosen WireGuard port open in your router's NAT settings (UDP)
 - A domain managed on **Cloudflare DNS** (free account)
-- A Cloudflare API token with `Zone:DNS:Edit` permission
+- A Cloudflare API token with `Zone:DNS:Edit` and `Account:Cloudflare Tunnel:Edit` permissions
 - A Cloudflare Tunnel token (Zero Trust → Networks → Tunnels)
 
 > No ports 80/443 forwarding needed — all web traffic flows through the Cloudflare Tunnel.
@@ -29,17 +29,14 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
 
 1. Create a free account at [cloudflare.com](https://cloudflare.com) and add your domain
 2. In your domain registrar, point the nameservers to the two Cloudflare assigns (wait ~30 min)
-3. In **My Profile → API Tokens → Create Token**, use the "Edit zone DNS" template scoped to your domain — save the token as `cloudflare_api_token` in `secret.yml`
+3. In **My Profile → API Tokens → Create Token**, create a custom token with two permissions:
+   - **Zone → DNS → Edit** (scoped to your domain)
+   - **Account → Cloudflare Tunnel → Edit** (scoped to your account)
+
+   Save the token as `cloudflare_api_token` in `secret.yml`.
 4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`
-5. In the tunnel's **Public Hostnames** tab, add one entry per service:
 
-| Subdomain | Domain | Service |
-|---|---|---|
-| `auth` | your domain | `https://swag:443` |
-| `portainer` | your domain | `https://swag:443` |
-| `wg` | your domain | `https://swag:443` |
-
-   For each entry, expand **Additional application settings → TLS** and enable **No TLS Verify**. This is required because SWAG's certificate is issued for your domain, not the internal hostname `swag`.
+The playbook automatically configures the tunnel's Public Hostnames via the Cloudflare API — no manual dashboard setup needed.
 
 ### 2. Ansible setup
 

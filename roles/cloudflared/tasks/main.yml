@@ -11,3 +11,67 @@
     state: started
     restart: yes
     restart_policy: unless-stopped
+
+- name: Decode Cloudflare tunnel token
+  set_fact:
+    _cf_payload: >-
+      {{ (cloudflare_tunnel_token.split('.')[1]
+          | replace('-', '+') | replace('_', '/')
+          + '==') | b64decode | from_json }}
+
+- name: Set account and tunnel IDs from token
+  set_fact:
+    _cf_account_id: "{{ _cf_payload.a }}"
+    _cf_tunnel_id: "{{ _cf_payload.t }}"
+
+- name: Fetch current tunnel ingress configuration
+  uri:
+    url: "https://api.cloudflare.com/client/v4/accounts/{{ _cf_account_id }}/cfdtunnel/{{ _cf_tunnel_id }}/configurations"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ cloudflare_api_token }}"
+    status_code: 200
+  register: _cf_config
+  delegate_to: localhost
+
+- name: Build static ingress rules
+  set_fact:
+    _cf_static_hostnames:
+      - "{{ authelia.subdomain }}.{{ domain }}"
+      - "{{ portainer.subdomain }}.{{ domain }}"
+      - "{{ wireguard.subdomain }}.{{ domain }}"
+    _cf_static_rules:
+      - hostname: "{{ authelia.subdomain }}.{{ domain }}"
+        service: "https://swag:443"
+        originRequest:
+          noTLSVerify: true
+      - hostname: "{{ portainer.subdomain }}.{{ domain }}"
+        service: "https://swag:443"
+        originRequest:
+          noTLSVerify: true
+      - hostname: "{{ wireguard.subdomain }}.{{ domain }}"
+        service: "https://swag:443"
+        originRequest:
+          noTLSVerify: true
+
+- name: Preserve any custom hostnames added by add_new_service
+  set_fact:
+    _cf_custom_rules: >-
+      {{ (_cf_config.json.result.config.ingress | default([]))
+         | selectattr('hostname', 'defined')
+         | rejectattr('hostname', 'in', _cf_static_hostnames)
+         | list }}
+
+- name: Configure tunnel public hostnames
+  uri:
+    url: "https://api.cloudflare.com/client/v4/accounts/{{ _cf_account_id }}/cfdtunnel/{{ _cf_tunnel_id }}/configurations"
+    method: PUT
+    headers:
+      Authorization: "Bearer {{ cloudflare_api_token }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      config:
+        ingress: "{{ _cf_static_rules + _cf_custom_rules + [{'service': 'http_status:404'}] }}"
+    status_code: 200
+  delegate_to: localhost
