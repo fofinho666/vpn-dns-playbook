@@ -14,7 +14,7 @@ server:
   port: 9091
 
 log:
-  level: debug
+  level: warn
 
 totp:
   issuer: authelia.com
@@ -37,7 +37,7 @@ session:
   domain: {{ domain }}  # Should match whatever your root protected domain is
   expiration: 1h
   inactivity: 5m
-  remember_me_duration:  1M
+  remember_me_duration: 1w
 
   redis:
     host: redis
