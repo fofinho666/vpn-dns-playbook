@@ -36,6 +36,7 @@
       WG_HOST: "{{ domain }}"
       WG_PORT: "{{ wireguard.tunnel_port }}"
       WG_DEFAULT_DNS: "{{ dns_server }}"
+      PASSWORD: "{{ wireguard_password }}"
     ports:
       - "{{ wireguard.tunnel_port }}:51820/udp"
     volumes:
