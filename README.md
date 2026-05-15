@@ -105,6 +105,17 @@ Homer files live at `~/homer` on the server. Edit them there directly via SSH.
 
 See the [Homer documentation](https://github.com/bastienwirtz/homer/blob/main/docs/configuration.md) for configuration options.
 
+## Local DNS override
+
+For services to be reachable on your local network without going through the Cloudflare Tunnel, configure your local DNS server (e.g. Pi-hole, router) to resolve the domain and wildcard directly to your server's local IP:
+
+```
+your.domain     → <server-local-ip>
+*.your.domain   → <server-local-ip>
+```
+
+Replace `your.domain` with your domain and `<server-local-ip>` with your server's local IP. Without this, all traffic — even from within your LAN — would round-trip through Cloudflare.
+
 ## Two-factor authentication
 
 On first login, Authelia will try to send you a setup email. Since there is no SMTP server configured, the email is not actually sent.
