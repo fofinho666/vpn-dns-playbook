@@ -1,0 +1,29 @@
+tunnel: {{ _cf_tunnel_id }}
+credentials-file: /etc/cloudflared/creds.json
+
+ingress:
+  - hostname: {{ domain }}
+    service: http_status:404
+  - hostname: {{ authelia.subdomain }}.{{ domain }}
+    service: https://swag:443
+    originRequest:
+      noTLSVerify: true
+  - hostname: {{ portainer.subdomain }}.{{ domain }}
+    service: https://swag:443
+    originRequest:
+      noTLSVerify: true
+  - hostname: {{ wireguard.subdomain }}.{{ domain }}
+    service: https://swag:443
+    originRequest:
+      noTLSVerify: true
+{% for entry in _cf_custom_ingress %}
+  - hostname: {{ entry.hostname }}
+    service: {{ entry.service }}
+{% if entry.originRequest is defined %}
+    originRequest:
+{% for k, v in entry.originRequest.items() %}
+      {{ k }}: {{ v }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+  - service: http_status:404
