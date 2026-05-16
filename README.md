@@ -18,7 +18,7 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
 - Your chosen WireGuard port open in your router's NAT settings (UDP)
 - A domain managed on **Cloudflare DNS** (free account)
-- A Cloudflare API token with `Zone:DNS:Edit` and `Account:Cloudflare Tunnel:Edit` permissions
+- A Cloudflare API token with `Zone:DNS:Edit` permission
 - A Cloudflare Tunnel token (Zero Trust → Networks → Tunnels)
 
 > No ports 80/443 forwarding needed — all web traffic flows through the Cloudflare Tunnel.
@@ -29,14 +29,15 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
 
 1. Create a free account at [cloudflare.com](https://cloudflare.com) and add your domain
 2. In your domain registrar, point the nameservers to the two Cloudflare assigns (wait ~30 min)
-3. In **My Profile → API Tokens → Create Token**, create a custom token with two permissions:
+3. In **My Profile → API Tokens → Create Token**, create a custom token with:
    - **Zone → DNS → Edit** (scoped to your domain)
-   - **Account → Cloudflare Tunnel → Edit** (scoped to your account)
 
    Save the token as `cloudflare_api_token` in `secret.yml`.
-4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`
+4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`.
 
-The playbook automatically configures the tunnel's Public Hostnames via the Cloudflare API — no manual dashboard setup needed.
+   In the tunnel's **Public Hostnames** tab, add a wildcard route: hostname `*.your.domain` → service `https://your-server-local-ip:443`. This single rule routes all subdomains to SWAG, which handles per-service routing. The playbook manages DNS records for new services automatically via the Cloudflare DNS API.
+
+> The root domain (`your.domain`) is intentionally blocked at the reverse proxy level and is not publicly accessible even though it resolves through the tunnel.
 
 ### 2. Ansible setup
 
