@@ -49,14 +49,24 @@ services:
   - name: Home
     icon: fa fa-home
     items:
+
+  - name: Infra
+    icon: fa fa-server
+    items:
       - name: Portainer
         logo: assets/logos/svg/portainer.svg
         subtitle: Container manager
         url: https://{{ portainer.subdomain }}.{{ domain }}
         target: _blank
-      
+
       - name: Headscale
-        logo: assets/logos/png/wireguard.png
+        logo: assets/logos/svg/tailscale.svg
         subtitle: Manage VPN nodes
-        url:  https://{{ headscale_ui.subdomain }}.{{ domain }}
+        url: https://{{ headscale_ui.subdomain }}.{{ domain }}
+        target: _blank
+
+      - name: Oops Shell
+        logo: assets/logos/png/wetty.png
+        subtitle: Emergency web SSH
+        url: https://{{ webssh.subdomain }}.{{ domain }}
         target: _blank
