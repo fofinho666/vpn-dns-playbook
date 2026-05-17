@@ -24,6 +24,7 @@
     - nginx/proxy-confs/portainer.subdomain.conf
     - nginx/proxy-confs/headscale.subdomain.conf
     - nginx/proxy-confs/headscale-ui.subdomain.conf
+    - nginx/proxy-confs/oops.subdomain.conf
     - nginx/snippets/authelia-authrequest.conf
     - nginx/snippets/authelia-location.conf
     - nginx/site-confs/default.conf

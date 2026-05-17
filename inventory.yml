@@ -52,6 +52,11 @@ all:
       forward_host: homer
       forward_port: 8080
       config_file: "{{ user_home }}/homer/config.yml"
+    webssh:
+      docker_address: 10.8.2.12
+      subdomain: "{{ webssh_subdomain }}"
+      forward_host: webssh
+      forward_port: 3000
     cloudflared:
       docker_address: 10.8.2.9
 

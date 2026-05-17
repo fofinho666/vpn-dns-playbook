@@ -39,6 +39,7 @@
       - "{{ portainer.subdomain }}.{{ domain }}"
       - "{{ headscale.subdomain }}.{{ domain }}"
       - "{{ headscale_ui.subdomain }}.{{ domain }}"
+      - "{{ webssh.subdomain }}.{{ domain }}"
 
 - name: Build custom ingress with hostname present
   when: cf_action == 'ensure_present'

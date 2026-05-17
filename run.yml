@@ -37,6 +37,10 @@
       tags:
         - portainer
 
+    - role: webssh
+      tags:
+        - webssh
+
     - role: authelia
       tags:
         - authelia

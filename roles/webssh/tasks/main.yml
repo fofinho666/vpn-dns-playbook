@@ -1,0 +1,42 @@
+---
+# Oops shell (wetty). Reached only through:
+#   Cloudflare Tunnel -> SWAG (Authelia 2FA) -> wetty -> SSH login to the host
+# wetty itself holds no credentials: it prompts in the browser for the
+# system SSH user + password, which is the second independent factor.
+- name: Create webssh config directory
+  file:
+    path: "{{ docker_dir }}/webssh"
+    state: directory
+
+- name: Copy wetty overrides (font family)
+  copy:
+    src: "{{ item }}"
+    dest: "{{ docker_dir }}/webssh/{{ item }}"
+  loop:
+    - xterm_defaults.js
+    - html.js
+    - load.js
+
+- name: Make sure the webssh (wetty) container is created and running
+  docker_container:
+    name: webssh
+    image: wettyoss/wetty:latest
+    pull: yes
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ webssh.docker_address }}"
+    command:
+      - "--ssh-host={{ docker_gateway }}"
+      - "--ssh-port={{ ssh_port }}"
+      - "--ssh-auth=password"
+      - "--base=/"
+      - "--host=0.0.0.0"
+      - "--port={{ webssh.forward_port }}"
+      - "--title=Oops Shell"
+    volumes:
+      - "{{ docker_dir }}/webssh/xterm_defaults.js:/usr/src/app/build/assets/xterm_config/xterm_defaults.js:ro"
+      - "{{ docker_dir }}/webssh/html.js:/usr/src/app/build/server/socketServer/html.js:ro"
+      - "{{ docker_dir }}/webssh/load.js:/usr/src/app/build/client/wetty/term/load.js:ro"
+    state: started
+    restart: yes
+    restart_policy: unless-stopped

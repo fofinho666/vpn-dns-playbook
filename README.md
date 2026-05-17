@@ -12,6 +12,7 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
 | [cloudflared](https://github.com/cloudflare/cloudflared) | Cloudflare Tunnel (bypasses CGNAT, no open ports required) |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
+| [wetty](https://github.com/butlerx/wetty) | Web-accessible oops shell — break-glass SSH via browser (Authelia-gated) |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
 
 ## How the VPN works
@@ -136,14 +137,22 @@ your.domain     → <server-local-ip>
 
 This is also **required for the initial Tailscale device registration**, since the Tailscale control protocol (TS2021) is not compatible with Cloudflare Tunnel's HTTP/2 proxying.
 
+## Oops shell
+
+A web-accessible SSH shell (`wetty`) is available at `https://oops.your.domain` (or whatever `webssh_subdomain` you set) for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). It is intentionally reachable over the internet through the Cloudflare Tunnel — it must work when you are remote — and is protected by two independent factors:
+
+1. **Authelia two-factor** in front (the `*.your.domain` access-control rule)
+2. The **system SSH user + password**, prompted by wetty itself (it holds no stored credentials and connects back to the host's sshd)
+
+> **Scope:** this rescues cases where the OS/SSH is wedged but Docker is still running. It cannot help if Docker itself is down or the kernel has panicked — for that you need your cloud provider's serial console or IPMI.
+
 ## Two-factor authentication
 
-On first login, Authelia will try to send you a setup email. Since there is no SMTP server configured, the email is not actually sent.
+Authelia uses **TOTP** (authenticator-app codes) as the second factor. SMTP is configured (`smtp_*` in `secret.yml`) so Authelia emails the TOTP enrollment link and security notifications.
 
-To retrieve it, SSH into the server and run:
-```bash
-show_2fa
-```
+> The per-login second factor is the **TOTP code** from your authenticator app — email/SMS-delivered login OTP is not an Authelia feature in this configuration. Email is the delivery channel for enrollment and notifications, not for the login code itself.
+
+> Before applying the Authelia role, set a real `smtp_password` in `secret.yml` (for Gmail, an [App Password](https://support.google.com/accounts/answer/185833)). Switching to SMTP replaces the old filesystem notifier — the `show_2fa` helper no longer applies.
 
 ## Debugging
 
@@ -163,6 +172,7 @@ Container names:
 | Headscale | `headscale` |
 | Headscale UI | `headscale-ui` |
 | Portainer | `portainer` |
+| Oops shell (wetty) | `webssh` |
 | Homer Dashboard | `homer` |
 | Cloudflare Tunnel | `cloudflared` |
 
