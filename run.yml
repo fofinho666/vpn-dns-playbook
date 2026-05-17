@@ -29,9 +29,9 @@
       tags:
         - ufw
 
-    - role: wireguard
+    - role: headscale
       tags:
-        - wireguard
+        - headscale
 
     - role: portainer
       tags:
@@ -48,6 +48,11 @@
     - role: cloudflared
       tags:
         - cloudflared
+
+    # Must run after swag/cloudflared: connects to https://headscale.<domain>
+    - role: tailscale
+      tags:
+        - tailscale
 
     - role: homer
       tags:

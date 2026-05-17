@@ -36,7 +36,8 @@
       - "{{ domain }}"
       - "{{ authelia.subdomain }}.{{ domain }}"
       - "{{ portainer.subdomain }}.{{ domain }}"
-      - "{{ wireguard.subdomain }}.{{ domain }}"
+      - "{{ headscale.subdomain }}.{{ domain }}"
+      - "{{ headscale_ui.subdomain }}.{{ domain }}"
 
 - name: Extract custom ingress entries from existing config
   set_fact:

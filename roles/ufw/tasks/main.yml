@@ -4,6 +4,13 @@
     name: ufw
     state: present
 
+- name: Allow packet forwarding (required for Tailscale subnet routing)
+  lineinfile:
+    path: /etc/default/ufw
+    regexp: '^DEFAULT_FORWARD_POLICY='
+    line: 'DEFAULT_FORWARD_POLICY="ACCEPT"'
+  notify: reload ufw
+
 - name: Enable UFW logging
   ufw:
     logging: on

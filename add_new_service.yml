@@ -79,7 +79,7 @@
                   deny {{ cloudflared.docker_address }};
                   allow {{ local_ip_range }};
                   allow {{ docker_ip_range }};
-                  allow {{ wireguard_ip_range }};
+                  allow {{ tailscale_ip_range }};
                   deny all;
               }
           }

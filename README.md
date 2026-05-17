@@ -1,27 +1,36 @@
 # VPN-DNS-Playbook
 
-Ansible playbook to set up a home VPN server with two-factor authentication and secure remote access via Cloudflare Tunnel (works behind CGNAT — no open ports required).
+Ansible playbook to set up a home server with VPN access, two-factor authentication, and secure remote access via Cloudflare Tunnel (works behind CGNAT — no open ports required).
 
 ## What it sets up
 
 | Service | Purpose |
 |---|---|
-| [WireGuard Easy](https://github.com/WeeJeWel/wg-easy) | VPN |
-| [Authelia](https://github.com/authelia/authelia) | Two-factor authentication |
-| [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt certs |
-| [cloudflared](https://github.com/cloudflare/cloudflared) | Cloudflare Tunnel (bypasses CGNAT) |
+| [Headscale](https://github.com/juanfont/headscale) | Self-hosted Tailscale coordination server (VPN control plane) |
+| [Headscale UI](https://github.com/gurucomputing/headscale-ui) | Web interface for managing headscale nodes and keys |
+| [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headscale-ui and other services) |
+| [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
+| [cloudflared](https://github.com/cloudflare/cloudflared) | Cloudflare Tunnel (bypasses CGNAT, no open ports required) |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
+
+## How the VPN works
+
+This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed at a self-hosted [Headscale](https://github.com/juanfont/headscale) server instead of Tailscale's cloud.
+
+- **Headscale** runs on your server as the coordination server (replaces tailscale.com)
+- **Tailscale** client app is installed on every device (phone, laptop, etc.)
+- The **server itself** runs Tailscale as a subnet router, advertising your LAN (`192.168.0.0/16`) to all connected devices
+- Once connected, you can reach any device on your home network from anywhere
 
 ## Requirements
 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
-- Your chosen WireGuard port open in your router's NAT settings (UDP)
 - A domain managed on **Cloudflare DNS** (free account)
 - A Cloudflare API token with `Zone:DNS:Edit` permission
 - A Cloudflare Tunnel token (Zero Trust → Networks → Tunnels)
 
-> No ports 80/443 forwarding needed — all web traffic flows through the Cloudflare Tunnel.
+> No port forwarding or static IP required — all web traffic flows through the Cloudflare Tunnel.
 
 ## Setup
 
@@ -35,9 +44,9 @@ Ansible playbook to set up a home VPN server with two-factor authentication and 
    Save the token as `cloudflare_api_token` in `secret.yml`.
 4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`.
 
-   In the tunnel's **Public Hostnames** tab, add a wildcard route: hostname `*.your.domain` → service `https://your-server-local-ip:443`. This single rule routes all subdomains to SWAG, which handles per-service routing. The playbook manages DNS records for new services automatically via the Cloudflare DNS API.
+   In the tunnel's **Public Hostnames** tab, add a wildcard route: hostname `*.your.domain` → service `https://your-server-local-ip:443`. This single rule routes all subdomains to SWAG, which handles per-service routing. The playbook manages DNS records for new services automatically via the Cloudflare API.
 
-> The root domain (`your.domain`) is intentionally blocked at the reverse proxy level and is not publicly accessible even though it resolves through the tunnel.
+> The root domain (`your.domain`) is intentionally blocked at the reverse proxy level.
 
 ### 2. Ansible setup
 
@@ -58,7 +67,47 @@ Run a specific part using tags (see `run.yml` for available tags):
 ansible-playbook run.yml -t <tag>
 ```
 
-### Post-installation
+## Post-installation
+
+### 1. Set up headscale
+
+Create a user in headscale (used to group your devices):
+```bash
+docker exec headscale headscale users create USERNAME
+```
+
+Note the user ID from the output, then generate a reusable pre-auth key for your devices:
+```bash
+docker exec headscale headscale preauthkeys create -u USER_ID --reusable --expiration 24h
+```
+
+Save this key as `tailscale_preauth_key` in `secret.yml` and re-run the playbook — it connects the server's Tailscale client as a subnet router for your LAN.
+
+### 2. Connect your devices
+
+Install the [Tailscale app](https://tailscale.com/download) on each device. In the app:
+
+1. Go to **Settings → Account → Use custom coordination server**
+2. Enter `https://<headscale_subdomain>.your.domain` (the obscure control-plane subdomain set in `secret.yml`, with the `https://` prefix)
+3. Tap **Log in**
+
+> **Important**: The first time you connect a device, you must be on your **home WiFi** (so the app reaches headscale directly without Cloudflare in the path — the Tailscale control protocol can't traverse Cloudflare Tunnel). After the initial registration, the device can connect from anywhere.
+
+To register and name the device, SSH into the server and run the helper **before** tapping Log in:
+```bash
+register_device <device-name> <headscale-user>
+```
+It watches the headscale logs, captures the registration key automatically, registers the device, and renames the node (devices otherwise all register as `localhost`).
+
+Or use the Headscale UI at `https://headscale.your.domain` to manage nodes and pre-auth keys.
+
+### 3. Approve the server as a subnet router
+
+After the server's Tailscale connects, approve the advertised subnet in headscale:
+```bash
+docker exec headscale headscale routes list
+docker exec headscale headscale routes enable -r ROUTE_ID
+```
 
 ## Service Management
 
@@ -68,7 +117,7 @@ ansible-playbook run.yml -t <tag>
 ./service.sh
 ```
 
-New services are always internal — accessible only from the local network or through WireGuard.
+New services are internal by default — accessible from your local network, through Tailscale, or via Authelia 2FA if exposed publicly.
 
 ### Configure the Homer dashboard
 
@@ -78,14 +127,14 @@ See the [Homer documentation](https://github.com/bastienwirtz/homer/blob/main/do
 
 ## Local DNS override
 
-For services to be reachable on your local network without going through the Cloudflare Tunnel, configure your local DNS server (e.g. Pi-hole, router) to resolve the domain and wildcard directly to your server's local IP:
+For services to be reachable on your local network without going through Cloudflare, configure your local DNS server (e.g. Pi-hole, router) to resolve your domain directly to the server's local IP:
 
 ```
 your.domain     → <server-local-ip>
 *.your.domain   → <server-local-ip>
 ```
 
-Replace `your.domain` with your domain and `<server-local-ip>` with your server's local IP. Without this, all traffic — even from within your LAN — would round-trip through Cloudflare.
+This is also **required for the initial Tailscale device registration**, since the Tailscale control protocol (TS2021) is not compatible with Cloudflare Tunnel's HTTP/2 proxying.
 
 ## Two-factor authentication
 
@@ -111,7 +160,8 @@ Container names:
 |---|---|
 | SWAG | `swag` |
 | Authelia | `authelia` |
-| WireGuard | `wg-easy` |
+| Headscale | `headscale` |
+| Headscale UI | `headscale-ui` |
 | Portainer | `portainer` |
 | Homer Dashboard | `homer` |
 | Cloudflare Tunnel | `cloudflared` |

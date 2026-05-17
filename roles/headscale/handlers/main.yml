@@ -1,0 +1,12 @@
+---
+- name: restart headscale
+  docker_container:
+    name: headscale
+    state: started
+    restart: yes
+
+- name: Source .bashrc
+  shell:
+    executable: /bin/bash
+    cmd: source $HOME/.bashrc
+  failed_when: false

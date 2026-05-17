@@ -1,0 +1,75 @@
+---
+- name: Ensure headscale data directory exists
+  file:
+    path: "{{ docker_dir }}/headscale"
+    state: directory
+    mode: '0755'
+
+- name: Deploy headscale config
+  template:
+    src: config.yaml.j2
+    dest: "{{ docker_dir }}/headscale/config.yaml"
+    mode: '0644'
+  notify: restart headscale
+
+- name: Ensure headscale-ui directory exists
+  file:
+    path: "{{ docker_dir }}/headscale-ui"
+    state: directory
+    mode: '0755'
+
+- name: Deploy headscale-ui init script
+  template:
+    src: init.js.j2
+    dest: "{{ docker_dir }}/headscale-ui/init.js"
+    mode: '0644'
+
+- name: Make sure the headscale-ui container is created and running
+  docker_container:
+    name: headscale-ui
+    image: ghcr.io/gurucomputing/headscale-ui:latest
+    pull: yes
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ headscale_ui.docker_address }}"
+    volumes:
+      - "{{ docker_dir }}/headscale-ui/init.js:/web/init.js:ro"
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+
+- name: Make sure the headscale container is created and running
+  docker_container:
+    name: headscale
+    image: headscale/headscale:latest
+    pull: yes
+    command: serve
+    networks:
+      - name: docker_network
+        ipv4_address: "{{ headscale.docker_address }}"
+    volumes:
+      - "{{ docker_dir }}/headscale:/var/lib/headscale"
+      - "{{ docker_dir }}/headscale/config.yaml:/etc/headscale/config.yaml:ro"
+    state: started
+    restart: yes
+    restart_policy: unless-stopped
+
+- name: Deploy device registration helper script
+  template:
+    src: register-device.sh.j2
+    dest: "{{ docker_dir }}/headscale/register-device.sh"
+    mode: '0755'
+
+- name: Add a device registration alias to .bashrc
+  blockinfile:
+    path: "/home/{{ user }}/.bashrc"
+    create: yes
+    owner: "{{ uid }}"
+    group: "{{ gid }}"
+    mode: "0755"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - headscale register_device"
+    state: present
+    block: |
+      alias register_device="{{ docker_dir }}/headscale/register-device.sh"
+  notify:
+    - Source .bashrc

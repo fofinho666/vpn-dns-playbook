@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Deployed by Ansible (headscale role). Watches the headscale logs for a
+# device that has started registration, registers it, and names the node
+# (devices otherwise all register as "localhost").
+#
+# Usage: register_device <device-name> <headscale-user>
+set -eu
+
+DEVICE_NAME="${1:-}"
+HEADSCALE_USER="${2:-}"
+if [ -z "${DEVICE_NAME}" ] || [ -z "${HEADSCALE_USER}" ]; then
+  echo "Usage: register_device <device-name> <headscale-user>" >&2
+  exit 1
+fi
+
+echo "Waiting for '${DEVICE_NAME}' to begin registration (headscale user: ${HEADSCALE_USER})."
+echo "On the device: set the coordination server URL (with https://) and tap Log in."
+echo "Press Ctrl-C to cancel."
+echo
+
+LINE=$(sudo docker logs headscale --since 5s -f 2>&1 \
+  | grep -m1 "Starting node registration using key:")
+KEY="${LINE##* }"
+echo "Captured registration key: ${KEY}"
+
+sudo docker exec headscale headscale nodes register \
+  --user "${HEADSCALE_USER}" --key "${KEY}"
+
+# Newest node id == the device just registered (single manual flow).
+NODE_ID=$(sudo docker exec headscale headscale nodes list -o json | jq 'max_by(.id).id')
+sudo docker exec headscale headscale nodes rename "${DEVICE_NAME}" -i "${NODE_ID}"
+
+echo
+echo "Registered and renamed node ${NODE_ID} to '${DEVICE_NAME}'. Current nodes:"
+sudo docker exec headscale headscale nodes list

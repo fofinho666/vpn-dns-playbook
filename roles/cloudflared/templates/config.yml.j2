@@ -12,7 +12,13 @@ ingress:
     service: https://swag:443
     originRequest:
       noTLSVerify: true
-  - hostname: {{ wireguard.subdomain }}.{{ domain }}
+  - hostname: {{ headscale.subdomain }}.{{ domain }}
+    service: https://swag:443
+    originRequest:
+      noTLSVerify: true
+      disableChunkedEncoding: true
+      http2Origin: false
+  - hostname: {{ headscale_ui.subdomain }}.{{ domain }}
     service: https://swag:443
     originRequest:
       noTLSVerify: true

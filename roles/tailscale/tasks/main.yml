@@ -1,0 +1,37 @@
+---
+- name: Check if tailscale is installed
+  command: which tailscale
+  register: _ts_installed
+  changed_when: false
+  failed_when: false
+
+- name: Install tailscale via official script
+  shell: curl -fsSL https://tailscale.com/install.sh | sh
+  when: _ts_installed.rc != 0
+
+- name: Enable and start tailscaled
+  systemd:
+    name: tailscaled
+    state: started
+    enabled: yes
+
+- name: Check if tailscale is already connected
+  command: tailscale status --json
+  register: _ts_status
+  changed_when: false
+  failed_when: false
+
+- name: Connect tailscale to headscale
+  command: >
+    tailscale up
+    --login-server=https://{{ headscale.subdomain }}.{{ domain }}
+    --advertise-routes={{ local_ip_range }}
+    --accept-dns=false
+    --auth-key={{ tailscale_preauth_key }}
+  when:
+    - tailscale_preauth_key is defined
+    - (_ts_status.stdout | from_json).BackendState | default('') != 'Running'
+
+# After first connection, approve the advertised subnet route in headscale:
+#   docker exec headscale headscale nodes list-routes
+#   docker exec headscale headscale nodes approve-routes --identifier <ID> --routes {{ local_ip_range }}

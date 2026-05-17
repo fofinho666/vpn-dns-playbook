@@ -55,8 +55,8 @@ services:
         url: https://{{ portainer.subdomain }}.{{ domain }}
         target: _blank
       
-      - name: Wireguard
+      - name: Headscale
         logo: assets/logos/png/wireguard.png
-        subtitle: Manage VPN clients
-        url:  https://{{ wireguard.subdomain }}.{{ domain }}
+        subtitle: Manage VPN nodes
+        url:  https://{{ headscale_ui.subdomain }}.{{ domain }}
         target: _blank

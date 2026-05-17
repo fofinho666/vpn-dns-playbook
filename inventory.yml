@@ -19,7 +19,7 @@ all:
     docker_gateway: 10.8.2.1
 
     local_ip_range: 192.168.0.0/16
-    wireguard_ip_range: 10.8.0.0/24
+    tailscale_ip_range: 100.64.0.0/10
 
     # services:
     redis:
@@ -36,13 +36,16 @@ all:
       subdomain: portainer
       forward_host: portainer
       forward_port: 9000
-    wireguard:
+    headscale:
       docker_address: 10.8.2.6
-      subdomain: wg
-      forward_host: wireguard
-      forward_port: 51821
-      subnet: 10.8.0.x
-      tunnel_port: "{{ wireguard_tunnel_port }}"
+      subdomain: "{{ headscale_subdomain }}"
+      forward_host: headscale
+      forward_port: 8080
+    headscale_ui:
+      docker_address: 10.8.2.11
+      subdomain: headscale
+      forward_host: headscale-ui
+      forward_port: 8080
     homer:
       docker_address: 10.8.2.8
       subdomain: "{{ domain }}"
@@ -60,8 +63,6 @@ all:
     https_port: "443"
 
     ufw_ports:
-      - port: "{{ wireguard.tunnel_port }}"
-        proto: udp
       - port: "{{ http_port }}"
         proto: tcp
       - port: "{{ https_port }}"
