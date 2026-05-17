@@ -8,10 +8,6 @@ ingress:
     service: https://swag:443
     originRequest:
       noTLSVerify: true
-  - hostname: {{ portainer.subdomain }}.{{ domain }}
-    service: https://swag:443
-    originRequest:
-      noTLSVerify: true
   - hostname: {{ headscale.subdomain }}.{{ domain }}
     service: https://swag:443
     originRequest:
@@ -19,6 +15,10 @@ ingress:
       disableChunkedEncoding: true
       http2Origin: false
   - hostname: {{ headscale_ui.subdomain }}.{{ domain }}
+    service: https://swag:443
+    originRequest:
+      noTLSVerify: true
+  - hostname: {{ webssh.subdomain }}.{{ domain }}
     service: https://swag:443
     originRequest:
       noTLSVerify: true
