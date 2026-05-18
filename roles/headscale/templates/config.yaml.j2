@@ -37,21 +37,4 @@ dns:
   base_domain: ts.{{ domain }}
   nameservers:
     global:
-      - 192.168.8.1
-  extra_records:
-    - name: "{{ domain }}"
-      type: "A"
-      value: "100.64.0.1"
-    - name: "{{ authelia.subdomain }}.{{ domain }}"
-      type: "A"
-      value: "100.64.0.1"
-    # NOTE: {{ '{{' }} headscale.subdomain {{ '}}' }} (the Tailscale control plane) is
-    # deliberately NOT here. It must resolve via public DNS -> VPS relay so the
-    # control/long-poll channel stays independent of the tunnel it maintains.
-    # Adding it creates a circular dependency and breaks phone reconnection.
-    - name: "{{ headscale_ui.subdomain }}.{{ domain }}"
-      type: "A"
-      value: "100.64.0.1"
-    - name: "{{ webssh.subdomain }}.{{ domain }}"
-      type: "A"
-      value: "100.64.0.1"
+      - {{ local_dns }}

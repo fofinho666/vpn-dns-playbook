@@ -3,3 +3,10 @@
   systemd:
     name: docker
     state: restarted
+
+- name: Enable and start tailscale-docker-nat-fix
+  systemd:
+    name: tailscale-docker-nat-fix
+    enabled: yes
+    state: started
+    daemon_reload: yes

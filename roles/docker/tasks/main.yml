@@ -1,4 +1,14 @@
 ---
+- name: Configure Docker daemon
+  copy:
+    content: |
+      {
+        "userland-proxy": false
+      }
+    dest: /etc/docker/daemon.json
+    mode: '0644'
+  notify: Restart Docker
+
 - name: Create the docker network
   docker_network:
     name: docker_network
@@ -6,3 +16,20 @@
       - subnet: "{{ docker_network_subnet }}"
         gateway: "{{ docker_gateway }}"
         iprange: "{{ docker_ip_range }}"
+
+- name: Deploy Tailscale-Docker NAT fix service
+  template:
+    src: tailscale-docker-nat-fix.service.j2
+    dest: /etc/systemd/system/tailscale-docker-nat-fix.service
+    mode: '0644'
+  notify: Enable and start tailscale-docker-nat-fix
+
+- name: Add POSTROUTING ACCEPT rule now (idempotent)
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ tailscale_ip_range }}"
+    destination: "{{ docker_network_subnet }}"
+    jump: ACCEPT
+    action: insert
+    rule_num: 1
