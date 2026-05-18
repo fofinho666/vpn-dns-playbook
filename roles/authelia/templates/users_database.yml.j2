@@ -10,7 +10,7 @@ users:
   {{ user }}:
     displayname: "{{ user }}"
     password: "{{ authelia_password | string | password_hash('sha512') }}"
-    email: email@localhost
+    email: "{{ smtp_sender }}"
     groups:
       - admins
       - dev
