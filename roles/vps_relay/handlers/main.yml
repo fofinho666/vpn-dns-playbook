@@ -1,0 +1,6 @@
+---
+- name: restart headscale-relay
+  systemd:
+    name: headscale-relay
+    state: restarted
+    daemon_reload: yes

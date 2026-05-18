@@ -1,0 +1,11 @@
+---
+- name: Setup VPS (Headscale raw-TCP relay)
+  hosts: vps
+  become: true
+  vars_files:
+    - secret.yml
+
+  roles:
+    - role: vps_relay
+      tags:
+        - vps_relay

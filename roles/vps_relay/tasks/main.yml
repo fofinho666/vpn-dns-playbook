@@ -1,0 +1,78 @@
+---
+# Raw-TCP relay: socat :443 -> 127.0.0.1:8443 (the reverse-SSH tunnel endpoint)
+- name: Install socat
+  apt:
+    name: socat
+    state: present
+
+- name: Deploy socat relay systemd unit
+  template:
+    src: headscale-relay.service.j2
+    dest: /etc/systemd/system/headscale-relay.service
+    mode: '0644'
+  notify: restart headscale-relay
+
+- name: Enable and start socat relay
+  systemd:
+    name: headscale-relay
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+# ── Cloudflare DNS: wildcard + apex → VPS public IP (unproxied) ─────────────────
+- name: Look up Cloudflare zone ID
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones?name={{ domain }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ cloudflare_api_token }}"
+  register: _cf_zones
+  delegate_to: localhost
+
+- name: Set Cloudflare zone ID
+  set_fact:
+    _cf_zone_id: "{{ _cf_zones.json.result | map(attribute='id') | first }}"
+    _vps_dns_names:
+      - "{{ domain }}"
+      - "*.{{ domain }}"
+
+- name: Check existing DNS records
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone_id }}/dns_records?name={{ item }}"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ cloudflare_api_token }}"
+  register: _vps_dns_checks
+  loop: "{{ _vps_dns_names }}"
+  delegate_to: localhost
+
+- name: Delete stale DNS records (wrong IP)
+  when: >-
+    item.json.result | length > 0 and
+    (item.json.result | first).content != vps_host
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone_id }}/dns_records/{{ item.json.result | map(attribute='id') | first }}"
+    method: DELETE
+    headers:
+      Authorization: "Bearer {{ cloudflare_api_token }}"
+  loop: "{{ _vps_dns_checks.results }}"
+  delegate_to: localhost
+
+- name: Create missing or updated A records → VPS (unproxied)
+  when: >-
+    item.json.result | length == 0 or
+    (item.json.result | first).content != vps_host
+  uri:
+    url: "https://api.cloudflare.com/client/v4/zones/{{ _cf_zone_id }}/dns_records"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ cloudflare_api_token }}"
+      Content-Type: application/json
+    body_format: json
+    body:
+      type: A
+      name: "{{ item.item }}"
+      content: "{{ vps_host }}"
+      proxied: false
+  loop: "{{ _vps_dns_checks.results }}"
+  delegate_to: localhost

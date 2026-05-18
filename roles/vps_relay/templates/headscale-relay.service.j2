@@ -1,0 +1,12 @@
+[Unit]
+Description=socat relay :443 -> reverse SSH tunnel (raw-TCP passthrough)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/socat TCP-LISTEN:443,fork,reuseaddr TCP:127.0.0.1:8443
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
