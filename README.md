@@ -1,6 +1,6 @@
 # VPN-DNS-Playbook
 
-Ansible playbook to set up a home server with VPN access, two-factor authentication, and secure remote access via Cloudflare Tunnel (works behind CGNAT — no open ports required).
+Ansible playbook to set up a home server with VPN access, two-factor authentication, and secure remote access via a VPS reverse SSH relay (works behind CGNAT — no open ports required).
 
 ## What it sets up
 
@@ -10,10 +10,24 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 | [Headscale UI](https://github.com/gurucomputing/headscale-ui) | Web interface for managing headscale nodes and keys |
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headscale-ui and other services) |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
-| [cloudflared](https://github.com/cloudflare/cloudflared) | Cloudflare Tunnel (bypasses CGNAT, no open ports required) |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
 | [wetty](https://github.com/butlerx/wetty) | Web-accessible oops shell — break-glass SSH via browser (Authelia-gated) |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
+
+## How remote access works
+
+Public HTTPS traffic reaches the server via a **VPS reverse SSH relay**:
+
+```
+Browser → Cloudflare DNS → VPS :443
+       → socat → autossh reverse tunnel → SWAG :443 → services
+```
+
+1. A cheap VPS (e.g. Oracle Cloud free tier) runs `socat`, listening on `:443`
+2. The home server maintains a persistent `autossh` reverse SSH tunnel, forwarding `127.0.0.1:8443` on the VPS to SWAG on the LAN
+3. Cloudflare DNS points `*.your.domain` and `your.domain` to the VPS IP (unproxied A records)
+
+This bypasses CGNAT and works without any open ports on the home server. Crucially, it passes raw TCP — which is required for the Tailscale TS2021 protocol (Cloudflare's HTTP/2 proxy is incompatible with it).
 
 ## How the VPN works
 
@@ -27,38 +41,76 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 ## Requirements
 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
-- A domain managed on **Cloudflare DNS** (free account)
-- A Cloudflare API token with `Zone:DNS:Edit` permission
-- A Cloudflare Tunnel token (Zero Trust → Networks → Tunnels)
-
-> No port forwarding or static IP required — all web traffic flows through the Cloudflare Tunnel.
+- A domain managed on **Cloudflare DNS** (free account) with a Cloudflare API token (`Zone:DNS:Edit`)
+- A **VPS** with a public IP and SSH access (Oracle Cloud free tier ARM works well)
+- Your **local DNS server** (router, Pi-hole, etc.) resolving `*.your.domain` → server's local IP
 
 ## Setup
 
 ### 1. Cloudflare account
 
 1. Create a free account at [cloudflare.com](https://cloudflare.com) and add your domain
-2. In your domain registrar, point the nameservers to the two Cloudflare assigns (wait ~30 min)
+2. In your domain registrar, point the nameservers to the ones Cloudflare assigns
 3. In **My Profile → API Tokens → Create Token**, create a custom token with:
    - **Zone → DNS → Edit** (scoped to your domain)
 
    Save the token as `cloudflare_api_token` in `secret.yml`.
-4. In **Zero Trust → Networks → Tunnels → Create a tunnel**, choose Cloudflared and copy the token — save it as `cloudflare_tunnel_token` in `secret.yml`.
 
-   In the tunnel's **Public Hostnames** tab, add a wildcard route: hostname `*.your.domain` → service `https://your-server-local-ip:443`. This single rule routes all subdomains to SWAG, which handles per-service routing. The playbook manages DNS records for new services automatically via the Cloudflare API.
+The `vps.yml` playbook automatically manages the DNS records (`*.your.domain` and `your.domain` → VPS IP).
 
-> The root domain (`your.domain`) is intentionally blocked at the reverse proxy level.
+### 2. VPS (Google Cloud)
 
-### 2. Ansible setup
+A single **e2-micro** instance on Google Cloud's free tier works well (free in `us-central1`, `us-east1`, or `us-west1`).
+
+#### Create the VM
+
+1. Go to **Compute Engine → VM instances → Create instance**
+2. Set a name (e.g. `vps-relay`)
+3. Region: pick a free-tier region (`us-central1` recommended)
+4. Machine type: **e2-micro**
+5. Boot disk: **Ubuntu 24.04 LTS**, 30 GB standard persistent disk
+6. Under **Advanced → Security**, add your SSH public key (`~/.ssh/id_ed25519.pub`):
+   - Set the username to whatever you want (e.g. `ubuntu`) — this becomes `vps_user` in `secret.yml`
+7. Click **Create**
+
+#### Reserve a static external IP
+
+By default GCP assigns an ephemeral IP that changes on stop/start. Make it static:
+
+1. Go to **VPC Network → IP addresses**
+2. Find the ephemeral IP attached to your VM → click **Reserve**
+
+Save this IP as `vps_host` in `secret.yml`.
+
+#### Open port 443
+
+GCP's default firewall blocks all inbound ports except SSH. Add a rule for port 443:
+
+1. Go to **VPC Network → Firewall → Create firewall rule**
+2. Name: `allow-https-relay`
+3. Direction: **Ingress**
+4. Targets: **All instances in the network** (or add a network tag to the VM and target that)
+5. Source filter: `0.0.0.0/0`
+6. Protocols and ports: **TCP 443**
+7. Click **Create**
+
+The `vps.yml` playbook installs socat and configures the relay automatically.
+
+### 3. Ansible setup
 
 1. Install Ansible: `pip install ansible` (or `brew install ansible` on macOS)
 2. Install role dependencies: `ansible-galaxy install -r requirements.yml`
 3. Ensure SSH access to your Ubuntu server
 4. Copy `secret_example.yml` to `secret.yml` and fill in your values
 
-## Running the playbook
+## Running the playbooks
 
-Run the full playbook:
+Provision the VPS relay first:
+```bash
+ansible-playbook vps.yml
+```
+
+Then provision the home server:
 ```bash
 ansible-playbook run.yml
 ```
@@ -92,7 +144,7 @@ Install the [Tailscale app](https://tailscale.com/download) on each device. In t
 2. Enter `https://<headscale_subdomain>.your.domain` (the obscure control-plane subdomain set in `secret.yml`, with the `https://` prefix)
 3. Tap **Log in**
 
-> **Important**: The first time you connect a device, you must be on your **home WiFi** (so the app reaches headscale directly without Cloudflare in the path — the Tailscale control protocol can't traverse Cloudflare Tunnel). After the initial registration, the device can connect from anywhere.
+Device registration works from anywhere — the VPS relay passes raw TCP so the Tailscale TS2021 protocol reaches Headscale without issue.
 
 To register and name the device, SSH into the server and run the helper **before** tapping Log in:
 ```bash
@@ -118,7 +170,7 @@ docker exec headscale headscale routes enable -r ROUTE_ID
 ./service.sh
 ```
 
-New services are internal by default — accessible from your local network, through Tailscale, or via Authelia 2FA if exposed publicly.
+New services are internal by default — accessible from your local network, through Tailscale, or via Authelia 2FA if exposed publicly. DNS is handled automatically by the `*.your.domain` wildcard record.
 
 ### Configure the Homer dashboard
 
@@ -128,18 +180,16 @@ See the [Homer documentation](https://github.com/bastienwirtz/homer/blob/main/do
 
 ## Local DNS override
 
-For services to be reachable on your local network without going through Cloudflare, configure your local DNS server (e.g. Pi-hole, router) to resolve your domain directly to the server's local IP:
+Configure your local DNS server (e.g. Pi-hole, router) to resolve your domain directly to the server's local IP so LAN devices don't round-trip through the VPS:
 
 ```
 your.domain     → <server-local-ip>
 *.your.domain   → <server-local-ip>
 ```
 
-This is also **required for the initial Tailscale device registration**, since the Tailscale control protocol (TS2021) is not compatible with Cloudflare Tunnel's HTTP/2 proxying.
-
 ## Oops shell
 
-A web-accessible SSH shell (`wetty`) is available at `https://oops.your.domain` (or whatever `webssh_subdomain` you set) for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). It is intentionally reachable over the internet through the Cloudflare Tunnel — it must work when you are remote — and is protected by two independent factors:
+A web-accessible SSH shell (`wetty`) is available at `https://oops.your.domain` (or whatever `webssh_subdomain` you set) for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). It is intentionally reachable over the internet through the VPS relay and is protected by two independent factors:
 
 1. **Authelia two-factor** in front (the `*.your.domain` access-control rule)
 2. The **system SSH user + password**, prompted by wetty itself (it holds no stored credentials and connects back to the host's sshd)
@@ -152,7 +202,7 @@ Authelia uses **TOTP** (authenticator-app codes) as the second factor. SMTP is c
 
 > The per-login second factor is the **TOTP code** from your authenticator app — email/SMS-delivered login OTP is not an Authelia feature in this configuration. Email is the delivery channel for enrollment and notifications, not for the login code itself.
 
-> Before applying the Authelia role, set a real `smtp_password` in `secret.yml` (for Gmail, an [App Password](https://support.google.com/accounts/answer/185833)). Switching to SMTP replaces the old filesystem notifier — the `show_2fa` helper no longer applies.
+> For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833) as `smtp_password`.
 
 ## Debugging
 
@@ -174,7 +224,20 @@ Container names:
 | Portainer | `portainer` |
 | Oops shell (wetty) | `webssh` |
 | Homer Dashboard | `homer` |
-| Cloudflare Tunnel | `cloudflared` |
+
+### Reverse tunnel
+
+The autossh tunnel runs as a systemd service on the home server:
+```bash
+systemctl status headscale-tunnel
+journalctl -u headscale-tunnel -f
+```
+
+The socat relay runs as a systemd service on the VPS:
+```bash
+systemctl status headscale-relay
+journalctl -u headscale-relay -f
+```
 
 ## Credits
 
