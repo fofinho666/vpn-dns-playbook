@@ -32,6 +32,23 @@
     - tailscale_preauth_key is defined
     - (_ts_status.stdout | from_json).BackendState | default('') != 'Running'
 
-# After first connection, approve the advertised subnet route in headscale:
-#   docker exec headscale headscale nodes list-routes
-#   docker exec headscale headscale nodes approve-routes --identifier <ID> --routes {{ local_ip_range }}
+- name: Wait for server node to appear in Headscale
+  command: docker exec headscale headscale nodes list --output json
+  register: _headscale_nodes
+  changed_when: false
+  retries: 10
+  delay: 3
+  until: >
+    _headscale_nodes.rc == 0 and
+    (_headscale_nodes.stdout | from_json |
+     selectattr('given_name', 'equalto', ansible_hostname) | list | length > 0)
+
+- name: Approve advertised subnet routes in Headscale
+  command: >
+    docker exec headscale headscale nodes approve-routes
+    --identifier {{ item.id }}
+    --routes {{ local_ip_range }}
+  loop: "{{ _headscale_nodes.stdout | from_json }}"
+  when:
+    - item.given_name == ansible_hostname
+    - local_ip_range not in (item.approved_routes | default([]))
