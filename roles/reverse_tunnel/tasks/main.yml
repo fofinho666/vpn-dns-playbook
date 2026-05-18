@@ -1,0 +1,53 @@
+---
+- name: Install autossh
+  apt:
+    name: autossh
+    state: present
+
+- name: Generate dedicated tunnel SSH keypair
+  command: ssh-keygen -t ed25519 -N "" -C "headscale-reverse-tunnel" -f {{ tunnel_key_path }}
+  args:
+    creates: "{{ tunnel_key_path }}"
+
+- name: Read tunnel public key
+  slurp:
+    src: "{{ tunnel_key_path }}.pub"
+  register: _tunnel_pubkey
+
+- name: Set tunnel public key fact
+  set_fact:
+    _tunnel_pubkey_line: "{{ _tunnel_pubkey.content | b64decode | trim }}"
+
+- name: Ensure VPS .ssh directory exists
+  file:
+    path: "/home/{{ vps_user }}/.ssh"
+    state: directory
+    owner: "{{ vps_user }}"
+    group: "{{ vps_user }}"
+    mode: '0700'
+  delegate_to: vps
+
+- name: Authorize tunnel key on the VPS (restricted to the reverse forward only)
+  lineinfile:
+    path: "/home/{{ vps_user }}/.ssh/authorized_keys"
+    create: yes
+    owner: "{{ vps_user }}"
+    group: "{{ vps_user }}"
+    mode: '0600'
+    regexp: 'headscale-reverse-tunnel$'
+    line: 'no-pty,no-agent-forwarding,no-X11-forwarding,permitlisten="127.0.0.1:8443" {{ _tunnel_pubkey_line }}'
+  delegate_to: vps
+
+- name: Deploy reverse tunnel systemd unit
+  template:
+    src: headscale-tunnel.service.j2
+    dest: /etc/systemd/system/headscale-tunnel.service
+    mode: '0644'
+  notify: restart headscale-tunnel
+
+- name: Enable and start reverse tunnel
+  systemd:
+    name: headscale-tunnel
+    enabled: yes
+    state: started
+    daemon_reload: yes
