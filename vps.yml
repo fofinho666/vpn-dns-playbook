@@ -5,6 +5,14 @@
   vars_files:
     - secret.yml
 
+  pre_tasks:
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+      tags:
+        - always
+
   roles:
     - role: vps_relay
       tags:

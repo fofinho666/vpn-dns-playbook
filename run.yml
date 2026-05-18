@@ -6,6 +6,13 @@
     - secret.yml
 
   pre_tasks:
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+      tags:
+        - always
+
     - name: Get User and Group IDs
       getent:
         database: passwd
