@@ -33,6 +33,32 @@
       ufw:
         state: enabled
         policy: deny
+
+    # UFW reset on Ubuntu 24.04 with nftables leaves the INPUT hook chain without
+    # jumps to UFW's own chains, so the loopback ACCEPT rule in ufw-before-input is
+    # never reached. Insert it directly so systemd-resolved (127.0.0.53) and
+    # Docker's embedded DNS (127.0.0.11 → 127.0.0.53) keep working after a reset.
+    - name: Ensure loopback traffic is accepted (UFW/nftables chain-wiring workaround)
+      iptables:
+        chain: INPUT
+        in_interface: lo
+        jump: ACCEPT
+        action: insert
+        rule_num: 1
+
+    - name: Deploy loopback-fix systemd service
+      template:
+        src: ufw-loopback-fix.service.j2
+        dest: /etc/systemd/system/ufw-loopback-fix.service
+        mode: '0644'
+
+    - name: Enable and start loopback-fix service
+      systemd:
+        name: ufw-loopback-fix
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
   rescue:
     - name: Grant SSH access to prevent lockout
       ufw:
