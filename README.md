@@ -58,15 +58,41 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 
 The `vps.yml` playbook automatically manages the DNS records (`*.your.domain` and `your.domain` → VPS IP).
 
-### 2. VPS
+### 2. VPS (Google Cloud)
 
-Any VPS with a public static IP running **Ubuntu 24.04** works. Oracle Cloud's free tier ARM instance (`VM.Standard.A1.Flex`, 1 OCPU / 1 GB RAM in `us-ashburn-1` or `us-phoenix-1`) is a good zero-cost option.
+A single **e2-micro** instance on Google Cloud's free tier works well (free in `us-central1`, `us-east1`, or `us-west1`).
 
-Requirements:
-- Ubuntu 24.04 LTS
-- A **static public IP** — save it as `vps_host` in `secret.yml`
-- **Port 443 open** inbound in the cloud firewall / security group
-- SSH access with the key at `~/.ssh/id_ed25519` — the SSH username becomes `vps_user` in `secret.yml`
+#### Create the VM
+
+1. Go to **Compute Engine → VM instances → Create instance**
+2. Set a name (e.g. `vps-relay`)
+3. Region: pick a free-tier region (`us-central1` recommended)
+4. Machine type: **e2-micro**
+5. Boot disk: **Ubuntu 24.04 LTS**, 30 GB standard persistent disk
+6. Under **Advanced → Security**, add your SSH public key (`~/.ssh/id_ed25519.pub`):
+   - Set the username to whatever you want (e.g. `ubuntu`) — this becomes `vps_user` in `secret.yml`
+7. Click **Create**
+
+#### Reserve a static external IP
+
+By default GCP assigns an ephemeral IP that changes on stop/start. Make it static:
+
+1. Go to **VPC Network → IP addresses**
+2. Find the ephemeral IP attached to your VM → click **Reserve**
+
+Save this IP as `vps_host` in `secret.yml`.
+
+#### Open port 443
+
+GCP's default firewall blocks all inbound ports except SSH. Add a rule for port 443:
+
+1. Go to **VPC Network → Firewall → Create firewall rule**
+2. Name: `allow-https-relay`
+3. Direction: **Ingress**
+4. Targets: **All instances in the network** (or add a network tag to the VM and target that)
+5. Source filter: `0.0.0.0/0`
+6. Protocols and ports: **TCP 443**
+7. Click **Create**
 
 The `vps.yml` playbook installs socat and configures the relay automatically.
 
