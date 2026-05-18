@@ -112,12 +112,12 @@ ansible-playbook vps.yml
 
 Then provision the home server:
 ```bash
-ansible-playbook run.yml
+ansible-playbook server.yml
 ```
 
-Run a specific part using tags (see `run.yml` for available tags):
+Run a specific part using tags (see `server.yml` for available tags):
 ```bash
-ansible-playbook run.yml -t <tag>
+ansible-playbook server.yml -t <tag>
 ```
 
 ## Post-installation
