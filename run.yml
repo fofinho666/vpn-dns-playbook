@@ -49,11 +49,11 @@
       tags:
         - swag
 
-    - role: cloudflared
+    - role: reverse_tunnel
       tags:
-        - cloudflared
+        - reverse_tunnel
 
-    # Must run after swag/cloudflared: connects to https://headscale.<domain>
+    # Must run after swag: connects to https://headscale.<domain>
     - role: tailscale
       tags:
         - tailscale

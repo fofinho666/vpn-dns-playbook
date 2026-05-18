@@ -51,12 +51,6 @@
         - name: Restart swag
           include_tasks: tasks/restart_swag.yml
 
-        - name: Remove Cloudflare tunnel hostname
-          include_tasks: tasks/cloudflare_tunnel.yml
-          vars:
-            cf_action: ensure_absent
-            cf_subdomain: "{{ subdomain }}"
-
         - debug: msg="{{ subdomain }} subdomain removed from reverse proxy"
 
     - debug: msg="'{{ subdomain }}' config not found, nothing to do."
