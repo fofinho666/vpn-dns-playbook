@@ -7,9 +7,6 @@ const render = (title, favicon, css, js, configUrl) => `<!doctype html>
     <meta charset="utf8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="${favicon}">
     <title>${title}</title>
     ${css.map(file => `<link rel="stylesheet" href="${file}" />`).join('\n')}
