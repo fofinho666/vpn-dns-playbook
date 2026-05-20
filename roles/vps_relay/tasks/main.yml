@@ -19,7 +19,7 @@
     state: started
     daemon_reload: yes
 
-# ── Cloudflare DNS: wildcard + apex → VPS public IP (unproxied) ─────────────────
+# ── Cloudflare DNS: public-via-VPS subdomains → VPS public IP (unproxied) ──────
 - name: Look up Cloudflare zone ID
   uri:
     url: "https://api.cloudflare.com/client/v4/zones?name={{ domain }}"
@@ -33,8 +33,9 @@
   set_fact:
     _cf_zone_id: "{{ _cf_zones.json.result | map(attribute='id') | first }}"
     _vps_dns_names:
-      - "{{ domain }}"
-      - "*.{{ domain }}"
+      - "{{ authelia.subdomain }}.{{ domain }}"
+      - "{{ headscale.subdomain }}.{{ domain }}"
+      - "{{ webssh.subdomain }}.{{ domain }}"
 
 - name: Check existing DNS records
   uri:
