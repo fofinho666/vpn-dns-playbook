@@ -17,3 +17,20 @@
     - role: vps_relay
       tags:
         - vps_relay
+
+    - role: ufw
+      vars:
+        ufw_rescue_port: "{{ vps_ssh_port }}"
+        ufw_ports:
+          - port: "443"
+            proto: tcp
+          - port: "{{ vps_ssh_port }}"
+            proto: tcp
+      tags:
+        - ufw
+
+    - role: fail2ban
+      vars:
+        fail2ban_sshd_port: "{{ vps_ssh_port }}"
+      tags:
+        - fail2ban

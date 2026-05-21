@@ -36,6 +36,10 @@
       tags:
         - ufw
 
+    - role: fail2ban
+      tags:
+        - fail2ban
+
     - role: headscale
       tags:
         - headscale

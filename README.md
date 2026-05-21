@@ -94,7 +94,7 @@ GCP's default firewall blocks all inbound ports except SSH. Add a rule for port 
 6. Protocols and ports: **TCP 443**
 7. Click **Create**
 
-The `vps.yml` playbook installs socat and configures the relay automatically.
+The `vps.yml` playbook installs socat, configures ufw (443/tcp + SSH only), and sets up fail2ban on the VPS automatically.
 
 ### 3. Ansible setup
 
@@ -204,6 +204,22 @@ Authelia uses **TOTP** (authenticator-app codes) as the second factor. SMTP is c
 
 > For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833) as `smtp_password`.
 
+## Brute-force protection
+
+fail2ban runs on both the home server and the VPS, protecting SSH against brute-force login attempts. After 5 failures within 10 minutes, the offending IP is banned for 1 hour via ufw.
+
+Check the status of the sshd jail:
+```bash
+sudo fail2ban-client status sshd
+```
+
+Manually unban an IP:
+```bash
+sudo fail2ban-client set sshd unbanip <IP>
+```
+
+> **Note on web traffic:** fail2ban does not watch nginx logs on the server. Because all HTTP/S traffic arrives through the SSH reverse tunnel, nginx only sees `127.0.0.1` as the source IP — banning based on that would block all traffic. SSH is the meaningful attack surface for fail2ban in this architecture.
+
 ## Debugging
 
 ### Logs
@@ -224,6 +240,14 @@ Container names:
 | Portainer | `portainer` |
 | Rescue shell (wetty) | `webssh` |
 | Homer Dashboard | `homer` |
+
+### fail2ban
+
+```bash
+sudo fail2ban-client status          # list active jails
+sudo fail2ban-client status sshd     # show bans and failure counts
+sudo journalctl -u fail2ban -f       # live log
+```
 
 ### Reverse tunnel
 
