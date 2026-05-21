@@ -23,7 +23,7 @@ Browser → Cloudflare DNS → VPS :443
        → socat → autossh reverse tunnel → SWAG :443 → services
 ```
 
-1. A cheap VPS (e.g. Oracle Cloud free tier) runs `socat`, listening on `:443`
+1. A cheap VPS (e.g. Google Cloud free tier e2-micro) runs `socat`, listening on `:443`
 2. The home server maintains a persistent `autossh` reverse SSH tunnel, forwarding `127.0.0.1:8443` on the VPS to SWAG on the LAN
 3. Cloudflare DNS points `*.your.domain` and `your.domain` to the VPS IP (unproxied A records)
 
@@ -42,7 +42,7 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
 - A domain managed on **Cloudflare DNS** (free account) with a Cloudflare API token (`Zone:DNS:Edit`)
-- A **VPS** with a public IP and SSH access (Oracle Cloud free tier ARM works well)
+- A **VPS** with a public IP and SSH access (Google Cloud free tier e2-micro works well)
 - Your **local DNS server** (router, Pi-hole, etc.) resolving `*.your.domain` → server's local IP
 
 ## Setup
