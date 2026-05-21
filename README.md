@@ -129,9 +129,9 @@ Create a user in headscale (used to group your devices):
 docker exec headscale headscale users create USERNAME
 ```
 
-Note the user ID from the output, then generate a reusable pre-auth key for your devices:
+Generate a reusable pre-auth key for your devices:
 ```bash
-docker exec headscale headscale preauthkeys create -u USER_ID --reusable --expiration 24h
+docker exec headscale headscale preauthkeys create --user USERNAME --reusable --expiration 24h
 ```
 
 Save this key as `tailscale_preauth_key` in `secret.yml` and re-run the playbook — it connects the server's Tailscale client as a subnet router for your LAN.
@@ -158,8 +158,8 @@ Or use the Headscale UI at `https://<headscale_subdomain>.your.domain` to manage
 
 After the server's Tailscale connects, approve the advertised subnet in headscale:
 ```bash
-docker exec headscale headscale routes list
-docker exec headscale headscale routes enable -r ROUTE_ID
+docker exec headscale headscale nodes list
+docker exec headscale headscale nodes approve-routes --identifier NODE_ID --routes ROUTE_CIDR
 ```
 
 ## Service Management
