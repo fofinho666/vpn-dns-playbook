@@ -34,9 +34,12 @@ log:
 
 dns:
   magic_dns: true
+  override_local_dns: false
   base_domain: ts.{{ domain }}
   nameservers:
-    global:
-      - {{ local_dns }}
+    global: []
+    split:
+      {{ domain }}:
+        - {{ local_dns }}
   search_domains:
     - {{ domain }}
