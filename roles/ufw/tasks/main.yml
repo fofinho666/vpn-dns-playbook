@@ -63,7 +63,7 @@
     - name: Grant SSH access to prevent lockout
       ufw:
         rule: allow
-        port: "{{ ssh_port }}"
+        port: "{{ ufw_rescue_port | default(ssh_port) }}"
         proto: "tcp"
 
     - name: Deny everything else and enable UFW
