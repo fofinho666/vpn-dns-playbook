@@ -65,8 +65,8 @@ services:
         url: https://{{ headscale_ui.subdomain }}.{{ domain }}
         target: _blank
 
-      - name: Oops Shell
+      - name: Shell
         logo: assets/logos/png/wetty.png
-        subtitle: Emergency web SSH
+        subtitle: Web terminal
         url: https://{{ webssh.subdomain }}.{{ domain }}
         target: _blank

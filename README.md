@@ -11,7 +11,7 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headscale-ui and other services) |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
-| [wetty](https://github.com/butlerx/wetty) | Web-accessible oops shell — break-glass SSH via browser (Authelia-gated) |
+| [wetty](https://github.com/butlerx/wetty) | Break-glass web SSH — emergency browser terminal (Authelia-gated) |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
 
 ## How remote access works
@@ -23,7 +23,7 @@ Browser → Cloudflare DNS → VPS :443
        → socat → autossh reverse tunnel → SWAG :443 → services
 ```
 
-1. A cheap VPS (e.g. Oracle Cloud free tier) runs `socat`, listening on `:443`
+1. A cheap VPS (e.g. Google Cloud free tier e2-micro) runs `socat`, listening on `:443`
 2. The home server maintains a persistent `autossh` reverse SSH tunnel, forwarding `127.0.0.1:8443` on the VPS to SWAG on the LAN
 3. Cloudflare DNS points `*.your.domain` and `your.domain` to the VPS IP (unproxied A records)
 
@@ -42,7 +42,7 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
 - A domain managed on **Cloudflare DNS** (free account) with a Cloudflare API token (`Zone:DNS:Edit`)
-- A **VPS** with a public IP and SSH access (Oracle Cloud free tier ARM works well)
+- A **VPS** with a public IP and SSH access (Google Cloud free tier e2-micro works well)
 - Your **local DNS server** (router, Pi-hole, etc.) resolving `*.your.domain` → server's local IP
 
 ## Setup
@@ -129,9 +129,9 @@ Create a user in headscale (used to group your devices):
 docker exec headscale headscale users create USERNAME
 ```
 
-Note the user ID from the output, then generate a reusable pre-auth key for your devices:
+Generate a reusable pre-auth key for your devices:
 ```bash
-docker exec headscale headscale preauthkeys create -u USER_ID --reusable --expiration 24h
+docker exec headscale headscale preauthkeys create --user USERNAME --reusable --expiration 24h
 ```
 
 Save this key as `tailscale_preauth_key` in `secret.yml` and re-run the playbook — it connects the server's Tailscale client as a subnet router for your LAN.
@@ -152,14 +152,14 @@ register_device <device-name> <headscale-user>
 ```
 It watches the headscale logs, captures the registration key automatically, registers the device, and renames the node (devices otherwise all register as `localhost`).
 
-Or use the Headscale UI at `https://headscale.your.domain` to manage nodes and pre-auth keys.
+Or use the Headscale UI at `https://<headscale_subdomain>.your.domain` to manage nodes and pre-auth keys.
 
 ### 3. Approve the server as a subnet router
 
 After the server's Tailscale connects, approve the advertised subnet in headscale:
 ```bash
-docker exec headscale headscale routes list
-docker exec headscale headscale routes enable -r ROUTE_ID
+docker exec headscale headscale nodes list
+docker exec headscale headscale nodes approve-routes --identifier NODE_ID --routes ROUTE_CIDR
 ```
 
 ## Service Management
@@ -187,9 +187,9 @@ your.domain     → <server-local-ip>
 *.your.domain   → <server-local-ip>
 ```
 
-## Oops shell
+## Rescue shell
 
-A web-accessible SSH shell (`wetty`) is available at `https://oops.your.domain` (or whatever `webssh_subdomain` you set) for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). It is intentionally reachable over the internet through the VPS relay and is protected by two independent factors:
+A web-accessible SSH shell (`wetty`) is available at `https://<webssh_subdomain>.your.domain` for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). The subdomain is a secret — set `webssh_subdomain` to a random value (e.g. `openssl rand -hex 6`) rather than anything guessable. It is intentionally reachable over the internet through the VPS relay and is protected by two independent factors:
 
 1. **Authelia two-factor** in front (the `*.your.domain` access-control rule)
 2. The **system SSH user + password**, prompted by wetty itself (it holds no stored credentials and connects back to the host's sshd)
@@ -222,7 +222,7 @@ Container names:
 | Headscale | `headscale` |
 | Headscale UI | `headscale-ui` |
 | Portainer | `portainer` |
-| Oops shell (wetty) | `webssh` |
+| Rescue shell (wetty) | `webssh` |
 | Homer Dashboard | `homer` |
 
 ### Reverse tunnel
