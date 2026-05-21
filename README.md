@@ -194,15 +194,15 @@ A web-accessible SSH shell (`wetty`) is available at `https://<webssh_subdomain>
 1. **Authelia two-factor** in front (the `*.your.domain` access-control rule)
 2. The **system SSH user + password**, prompted by wetty itself (it holds no stored credentials and connects back to the host's sshd)
 
-> **Scope:** this rescues cases where the OS/SSH is wedged but Docker is still running. It cannot help if Docker itself is down or the kernel has panicked — for that you need your cloud provider's serial console or IPMI.
+This rescues cases where the OS/SSH is wedged but Docker is still running. It cannot help if Docker itself is down or the kernel has panicked — for that you need your cloud provider's serial console or IPMI.
 
 ## Two-factor authentication
 
 Authelia uses **TOTP** (authenticator-app codes) as the second factor. SMTP is configured (`smtp_*` in `secret.yml`) so Authelia emails the TOTP enrollment link and security notifications.
 
-> The per-login second factor is the **TOTP code** from your authenticator app — email/SMS-delivered login OTP is not an Authelia feature in this configuration. Email is the delivery channel for enrollment and notifications, not for the login code itself.
+The per-login second factor is the **TOTP code** from your authenticator app — email/SMS-delivered login OTP is not an Authelia feature in this configuration. Email is the delivery channel for enrollment and notifications, not for the login code itself.
 
-> For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833) as `smtp_password`.
+For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833) as `smtp_password`.
 
 ## Brute-force protection
 
@@ -218,7 +218,7 @@ Manually unban an IP:
 sudo fail2ban-client set sshd unbanip <IP>
 ```
 
-> **Note on web traffic:** fail2ban does not watch nginx logs on the server. Because all HTTP/S traffic arrives through the SSH reverse tunnel, nginx only sees `127.0.0.1` as the source IP — banning based on that would block all traffic. SSH is the meaningful attack surface for fail2ban in this architecture.
+fail2ban does not watch nginx logs on the server. Because all HTTP/S traffic arrives through the SSH reverse tunnel, nginx only sees `127.0.0.1` as the source IP — banning based on that would block all traffic. SSH is the meaningful attack surface for fail2ban in this architecture.
 
 ## Debugging
 
@@ -262,7 +262,3 @@ The socat relay runs as a systemd service on the VPS:
 systemctl status headscale-relay
 journalctl -u headscale-relay -f
 ```
-
-## Credits
-
-Thanks to Wolfgang for his [ansible-easy-vpn](https://github.com/notthebee/ansible-easy-vpn) playbook, which this is largely based on.
