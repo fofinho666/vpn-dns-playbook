@@ -32,7 +32,7 @@
       - "--base=/"
       - "--host=0.0.0.0"
       - "--port={{ webssh.forward_port }}"
-      - "--title=Shell"
+      - "--title=Oops Shell"
     volumes:
       - "{{ docker_dir }}/webssh/xterm_defaults.js:/usr/src/app/build/assets/xterm_config/xterm_defaults.js:ro"
       - "{{ docker_dir }}/webssh/html.js:/usr/src/app/build/server/socketServer/html.js:ro"
