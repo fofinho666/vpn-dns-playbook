@@ -152,7 +152,7 @@ register_device <device-name> <headscale-user>
 ```
 It watches the headscale logs, captures the registration key automatically, registers the device, and renames the node (devices otherwise all register as `localhost`).
 
-Or use the Headscale UI at `https://headscale.your.domain` to manage nodes and pre-auth keys.
+Or use the Headscale UI at `https://<headscale_subdomain>.your.domain` to manage nodes and pre-auth keys.
 
 ### 3. Approve the server as a subnet router
 
