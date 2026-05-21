@@ -11,7 +11,7 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headscale-ui and other services) |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
-| [wetty](https://github.com/butlerx/wetty) | Web-accessible oops shell — break-glass SSH via browser (Authelia-gated) |
+| [wetty](https://github.com/butlerx/wetty) | Break-glass web SSH — emergency browser terminal (Authelia-gated) |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
 
 ## How remote access works
@@ -187,9 +187,9 @@ your.domain     → <server-local-ip>
 *.your.domain   → <server-local-ip>
 ```
 
-## Oops shell
+## Rescue shell
 
-A web-accessible SSH shell (`wetty`) is available at `https://oops.your.domain` (or whatever `webssh_subdomain` you set) for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). It is intentionally reachable over the internet through the VPS relay and is protected by two independent factors:
+A web-accessible SSH shell (`wetty`) is available at `https://<webssh_subdomain>.your.domain` for recovering the server when normal SSH is unavailable (lost key, ISP blocking port 22, sshd/firewall lockout). The subdomain is a secret — set `webssh_subdomain` to a random value (e.g. `openssl rand -hex 6`) rather than anything guessable. It is intentionally reachable over the internet through the VPS relay and is protected by two independent factors:
 
 1. **Authelia two-factor** in front (the `*.your.domain` access-control rule)
 2. The **system SSH user + password**, prompted by wetty itself (it holds no stored credentials and connects back to the host's sshd)
@@ -222,7 +222,7 @@ Container names:
 | Headscale | `headscale` |
 | Headscale UI | `headscale-ui` |
 | Portainer | `portainer` |
-| Oops shell (wetty) | `webssh` |
+| Rescue shell (wetty) | `webssh` |
 | Homer Dashboard | `homer` |
 
 ### Reverse tunnel
