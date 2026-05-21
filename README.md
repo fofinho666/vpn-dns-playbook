@@ -200,8 +200,6 @@ This rescues cases where the OS/SSH is wedged but Docker is still running. It ca
 
 Authelia uses **TOTP** (authenticator-app codes) as the second factor. SMTP is configured (`smtp_*` in `secret.yml`) so Authelia emails the TOTP enrollment link and security notifications.
 
-The per-login second factor is the **TOTP code** from your authenticator app — email/SMS-delivered login OTP is not an Authelia feature in this configuration. Email is the delivery channel for enrollment and notifications, not for the login code itself.
-
 For Gmail, use an [App Password](https://support.google.com/accounts/answer/185833) as `smtp_password`.
 
 ## Brute-force protection
