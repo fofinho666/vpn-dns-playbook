@@ -73,6 +73,11 @@
       tags:
         - tailscale
 
+    # Must run after tailscale: dnsmasq binds to the Tailscale IP
+    - role: dns_relay
+      tags:
+        - dns_relay
+
     - role: homer
       tags:
         - homer

@@ -1,0 +1,44 @@
+---
+- name: Allow DNS queries from Tailscale clients
+  ufw:
+    rule: allow
+    port: '53'
+    proto: any
+    src: "{{ tailscale_ip_range }}"
+
+- name: Install dnsmasq
+  apt:
+    name: dnsmasq
+    state: present
+    update_cache: no
+
+- name: Configure dnsmasq
+  template:
+    src: dnsmasq.conf.j2
+    dest: /etc/dnsmasq.conf
+    mode: '0644'
+  notify: Restart dnsmasq
+
+- name: Create dnsmasq systemd override directory
+  file:
+    path: /etc/systemd/system/dnsmasq.service.d
+    state: directory
+    mode: '0755'
+
+- name: Configure dnsmasq to start after tailscaled
+  copy:
+    dest: /etc/systemd/system/dnsmasq.service.d/tailscale.conf
+    content: |
+      [Unit]
+      After=tailscaled.service
+      Wants=tailscaled.service
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart dnsmasq
+
+- name: Enable and start dnsmasq
+  systemd:
+    name: dnsmasq
+    state: started
+    enabled: yes

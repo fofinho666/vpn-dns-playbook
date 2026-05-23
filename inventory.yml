@@ -27,6 +27,7 @@ all:
 
     local_ip_range: 192.168.0.0/16
     tailscale_ip_range: 100.64.0.0/10
+    tailscale_node_ip: 100.64.0.1
 
     # services:
     redis:

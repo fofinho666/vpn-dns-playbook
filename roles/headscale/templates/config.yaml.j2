@@ -40,6 +40,6 @@ dns:
     global: []
     split:
       {{ domain }}:
-        - {{ local_dns }}
+        - {{ tailscale_node_ip }}
   search_domains:
     - {{ domain }}

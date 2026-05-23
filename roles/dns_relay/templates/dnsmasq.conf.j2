@@ -1,0 +1,8 @@
+listen-address={{ tailscale_node_ip }}
+bind-interfaces
+port=53
+bogus-priv
+domain-needed
+no-hosts
+no-resolv
+server={{ local_dns }}

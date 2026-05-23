@@ -1,11 +1,11 @@
 [Unit]
-Description=Preserve Tailscale source IPs through Docker NAT
+Description=Preserve Tailscale and LAN source IPs through Docker NAT
 After=docker.service tailscaled.service
 Requires=docker.service tailscaled.service
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c '/usr/sbin/iptables -t nat -D ts-postrouting -s {{ tailscale_ip_range }} -d {{ docker_network_subnet }} -j ACCEPT 2>/dev/null; /usr/sbin/iptables -t nat -I ts-postrouting 1 -s {{ tailscale_ip_range }} -d {{ docker_network_subnet }} -j ACCEPT'
+ExecStart=/bin/sh -c '/usr/sbin/iptables -t nat -D ts-postrouting -s {{ tailscale_ip_range }} -d {{ docker_network_subnet }} -j ACCEPT 2>/dev/null; /usr/sbin/iptables -t nat -D ts-postrouting -s {{ local_ip_range }} -d {{ docker_network_subnet }} -j ACCEPT 2>/dev/null; /usr/sbin/iptables -t nat -I ts-postrouting 1 -s {{ local_ip_range }} -d {{ docker_network_subnet }} -j ACCEPT; /usr/sbin/iptables -t nat -I ts-postrouting 1 -s {{ tailscale_ip_range }} -d {{ docker_network_subnet }} -j ACCEPT'
 RemainAfterExit=yes
 
 [Install]
