@@ -1,0 +1,23 @@
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Debian,codename=${distro_codename},label=Debian";
+    "origin=Debian,codename=${distro_codename},label=Debian-Security";
+    "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+    "origin=Debian,codename=${distro_codename}-updates";
+    "origin=Ubuntu,archive=${distro_codename}";
+    "origin=Ubuntu,archive=${distro_codename}-security";
+    "origin=Ubuntu,archive=${distro_codename}-updates";
+    "origin=UbuntuESMApps,archive=${distro_codename}-apps-security";
+    "origin=UbuntuESM,archive=${distro_codename}-infra-security";
+};
+
+Unattended-Upgrade::Package-Blacklist {
+};
+
+Unattended-Upgrade::DevRelease "auto";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "{{ unattended_upgrades_reboot | lower }}";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "{{ unattended_upgrades_reboot | lower }}";
+Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_upgrades_reboot_time }}";
+Unattended-Upgrade::SyslogEnable "true";

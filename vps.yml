@@ -18,6 +18,10 @@
       tags:
         - vps_relay
 
+    - role: unattended_upgrades
+      tags:
+        - unattended_upgrades
+
     - role: ufw
       vars:
         ufw_rescue_port: "{{ vps_ssh_port }}"

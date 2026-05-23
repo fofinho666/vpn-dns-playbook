@@ -32,6 +32,10 @@
       tags:
         - docker
 
+    - role: unattended_upgrades
+      tags:
+        - unattended_upgrades
+
     - role: ufw
       tags:
         - ufw
