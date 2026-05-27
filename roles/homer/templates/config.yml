@@ -62,7 +62,7 @@ services:
       - name: Headscale
         logo: assets/logos/svg/tailscale.svg
         subtitle: Manage VPN nodes
-        url: https://{{ headscale_ui.subdomain }}.{{ domain }}
+        url: https://{{ headplane.subdomain }}.{{ domain }}/admin/
         target: _blank
 
       - name: Shell

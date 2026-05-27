@@ -23,7 +23,8 @@
     - nginx/proxy-confs/auth.subdomain.conf
     - nginx/proxy-confs/portainer.subdomain.conf
     - nginx/proxy-confs/headscale.subdomain.conf
-    - nginx/proxy-confs/headscale-ui.subdomain.conf
+    - nginx/proxy-confs/headplane.subdomain.conf
+    - nginx/headplane-init.js
     - nginx/proxy-confs/oops.subdomain.conf
     - nginx/snippets/authelia-authrequest.conf
     - nginx/snippets/authelia-location.conf
@@ -40,6 +41,11 @@
     src: dns-conf/cloudflare.ini.j2
     dest: "{{ docker_dir }}/swag/dns-conf/cloudflare.ini"
     mode: "0600"
+
+- name: Remove old headscale-ui nginx conf
+  file:
+    path: "{{ docker_dir }}/swag/nginx/proxy-confs/headscale-ui.subdomain.conf"
+    state: absent
 
 - name: Make sure SWAG container is created and running
   docker_container:

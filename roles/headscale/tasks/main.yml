@@ -23,28 +23,36 @@
     mode: '0644'
   notify: restart headscale
 
-- name: Ensure headscale-ui directory exists
+- name: Remove headscale-ui container
+  docker_container:
+    name: headscale-ui
+    state: absent
+
+- name: Ensure headplane data directory exists
   file:
-    path: "{{ docker_dir }}/headscale-ui"
+    path: "{{ docker_dir }}/headplane"
     state: directory
     mode: '0755'
 
-- name: Deploy headscale-ui init script
+- name: Deploy headplane config
   template:
-    src: init.js.j2
-    dest: "{{ docker_dir }}/headscale-ui/init.js"
+    src: headplane-config.yaml.j2
+    dest: "{{ docker_dir }}/headplane/config.yaml"
     mode: '0644'
+  notify: restart headplane
 
-- name: Make sure the headscale-ui container is created and running
+- name: Make sure the headplane container is created and running
   docker_container:
-    name: headscale-ui
-    image: ghcr.io/gurucomputing/headscale-ui:latest
+    name: headplane
+    image: ghcr.io/tale/headplane:latest
     pull: yes
     networks:
       - name: docker_network
-        ipv4_address: "{{ headscale_ui.docker_address }}"
+        ipv4_address: "{{ headplane.docker_address }}"
     volumes:
-      - "{{ docker_dir }}/headscale-ui/init.js:/web/init.js:ro"
+      - "{{ docker_dir }}/headplane/config.yaml:/etc/headplane/config.yaml:ro"
+      - "{{ docker_dir }}/headplane/data:/var/lib/headplane"
+      - "{{ docker_dir }}/headscale/config.yaml:/etc/headscale/config.yaml:ro"
     state: started
     restart: yes
     restart_policy: unless-stopped

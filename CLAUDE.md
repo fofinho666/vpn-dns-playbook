@@ -97,7 +97,7 @@ Defined in `secret.yml` (sensitive, not committed):
 - `host`, `user`, `ssh_port` — home server SSH target
 - `vps_host`, `vps_user`, `vps_ssh_port` — VPS SSH target
 - `domain`, `headscale_subdomain`, `webssh_subdomain`
-- `cloudflare_api_token`, `headscale_api_key`, `tailscale_preauth_key`
+- `cloudflare_api_token`, `headscale_api_key`, `tailscale_preauth_key`, `headplane_cookie_secret`
 - `authelia_password`, `jwt_secret`, `session_secret`, `storage_encryption_key`
 - `smtp_*` — Authelia email delivery
 - `local_dns` — LAN DNS server IP

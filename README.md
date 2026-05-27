@@ -7,7 +7,7 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 | Service | Purpose |
 |---|---|
 | [Headscale](https://github.com/juanfont/headscale) | Self-hosted Tailscale coordination server (VPN control plane) |
-| [Headscale UI](https://github.com/gurucomputing/headscale-ui) | Web interface for managing headscale nodes and keys |
+| [Headplane](https://github.com/tale/headplane) | Web interface for managing headscale nodes and keys |
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headscale-ui and other services) |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
@@ -152,7 +152,7 @@ register_device <device-name> <headscale-user>
 ```
 It watches the headscale logs, captures the registration key automatically, registers the device, and renames the node (devices otherwise all register as `localhost`).
 
-Or use the Headscale UI at `https://<headscale_subdomain>.your.domain` to manage nodes and pre-auth keys.
+Or use Headplane at `https://headscale.your.domain` to manage nodes and pre-auth keys.
 
 ### 3. Approve the server as a subnet router
 
@@ -234,7 +234,7 @@ Container names:
 | SWAG | `swag` |
 | Authelia | `authelia` |
 | Headscale | `headscale` |
-| Headscale UI | `headscale-ui` |
+| Headplane | `headplane` |
 | Portainer | `portainer` |
 | Rescue shell (wetty) | `webssh` |
 | Homer Dashboard | `homer` |

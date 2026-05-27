@@ -1,4 +1,10 @@
 ---
+- name: restart headplane
+  docker_container:
+    name: headplane
+    state: started
+    restart: yes
+
 - name: restart headscale
   docker_container:
     name: headscale

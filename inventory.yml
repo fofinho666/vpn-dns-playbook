@@ -49,11 +49,11 @@ all:
       subdomain: "{{ headscale_subdomain }}"
       forward_host: headscale
       forward_port: 8080
-    headscale_ui:
-      docker_address: 10.8.2.11
+    headplane:
+      docker_address: 10.8.2.13
       subdomain: headscale
-      forward_host: headscale-ui
-      forward_port: 8080
+      forward_host: headplane
+      forward_port: 3000
     homer:
       docker_address: 10.8.2.8
       subdomain: "{{ domain }}"

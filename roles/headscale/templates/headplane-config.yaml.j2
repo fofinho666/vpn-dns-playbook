@@ -1,0 +1,14 @@
+server:
+  host: "0.0.0.0"
+  port: 3000
+  base_url: "https://{{ headplane.subdomain }}.{{ domain }}"
+  cookie_secret: "{{ headplane_cookie_secret }}"
+  cookie_secure: true
+  cookie_max_age: 86400
+  data_path: "/var/lib/headplane"
+
+headscale:
+  url: "http://{{ headscale.forward_host }}:{{ headscale.forward_port }}"
+  config_path: "/etc/headscale/config.yaml"
+  api_key: "{{ headscale_api_key }}"
+  config_strict: false
