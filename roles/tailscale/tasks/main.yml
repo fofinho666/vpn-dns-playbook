@@ -26,11 +26,17 @@
     tailscale up
     --login-server=https://{{ headscale.subdomain }}.{{ domain }}
     --advertise-routes={{ local_ip_range }}
+    --advertise-exit-node
     --accept-dns=false
     --auth-key={{ tailscale_preauth_key }}
   when:
     - tailscale_preauth_key is defined
     - (_ts_status.stdout | from_json).BackendState | default('') != 'Running'
+
+- name: Advertise exit node on already-connected tailscale
+  command: tailscale set --advertise-exit-node
+  changed_when: false
+  when: (_ts_status.stdout | from_json).BackendState | default('') == 'Running'
 
 - name: Wait for server node to appear in Headscale
   command: docker exec headscale headscale nodes list --output json
@@ -43,12 +49,14 @@
     (_headscale_nodes.stdout | from_json |
      selectattr('given_name', 'equalto', ansible_hostname) | list | length > 0)
 
-- name: Approve advertised subnet routes in Headscale
+- name: Approve advertised routes in Headscale
   command: >
     docker exec headscale headscale nodes approve-routes
     --identifier {{ item.id }}
-    --routes {{ local_ip_range }}
+    --routes {{ local_ip_range }},0.0.0.0/0,::/0
   loop: "{{ _headscale_nodes.stdout | from_json }}"
   when:
     - item.given_name == ansible_hostname
-    - local_ip_range not in (item.approved_routes | default([]))
+    - >
+      local_ip_range not in (item.approved_routes | default([])) or
+      '0.0.0.0/0' not in (item.approved_routes | default([]))
