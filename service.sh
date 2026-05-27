@@ -31,9 +31,16 @@ case $choice in
       url="http://${url}"
     fi
 
+    authelia_protected=false
+    if confirm "Require Authelia 2FA?"; then
+      authelia_protected=true
+    fi
+    echo
+
     ansible-playbook add_new_service.yml \
       -e "subdomain=${subdomain}" \
-      -e "service_url=${url}"
+      -e "service_url=${url}" \
+      -e "authelia_protected=${authelia_protected}"
     ;;
 
   2)

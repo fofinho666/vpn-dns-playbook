@@ -1,5 +1,5 @@
 ---
-# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint
+# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint [-e authelia_protected=true]
 - name: Add new service to reverse proxy
   hosts: server
   become: true
@@ -56,6 +56,9 @@
     - name: "Create proxy-conf for {{ subdomain }}"
       copy:
         content: |
+          {% if authelia_protected | default(false) | bool %}
+          include /config/nginx/snippets/authelia-location.conf;
+          {% endif %}
           server {
               listen 443 ssl;
               listen [::]:443 ssl;
@@ -70,7 +73,9 @@
               location / {
                   include /config/nginx/proxy.conf;
                   include /config/nginx/resolver.conf;
-
+          {% if authelia_protected | default(false) | bool %}
+                  include /config/nginx/snippets/authelia-authrequest.conf;
+          {% endif %}
                   set $upstream_app {{ service_host }};
                   set $upstream_port {{ service_port }};
                   set $upstream_proto http;
