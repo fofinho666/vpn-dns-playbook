@@ -42,11 +42,6 @@
     dest: "{{ docker_dir }}/swag/dns-conf/cloudflare.ini"
     mode: "0600"
 
-- name: Remove old headscale-ui nginx conf
-  file:
-    path: "{{ docker_dir }}/swag/nginx/proxy-confs/headscale-ui.subdomain.conf"
-    state: absent
-
 - name: Make sure SWAG container is created and running
   docker_container:
     name: swag

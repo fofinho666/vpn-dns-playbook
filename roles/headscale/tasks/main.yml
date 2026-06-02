@@ -23,11 +23,6 @@
     mode: '0644'
   notify: restart headscale
 
-- name: Remove headscale-ui container
-  docker_container:
-    name: headscale-ui
-    state: absent
-
 - name: Ensure headplane data directory exists
   file:
     path: "{{ docker_dir }}/headplane"

@@ -8,7 +8,7 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 |---|---|
 | [Headscale](https://github.com/juanfont/headscale) | Self-hosted Tailscale coordination server (VPN control plane) |
 | [Headplane](https://github.com/tale/headplane) | Web interface for managing headscale nodes and keys |
-| [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headscale-ui and other services) |
+| [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headplane and other services) |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
 | [wetty](https://github.com/butlerx/wetty) | Break-glass web SSH — emergency browser terminal (Authelia-gated) |
