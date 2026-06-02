@@ -59,7 +59,7 @@ The roles have hard dependency ordering:
 
 All containers share a single bridge network (`docker_network`, subnet `10.8.2.0/24`). Static IPs are defined in `inventory.yml`. The gateway is `10.8.2.1`.
 
-The `docker` role deploys a `tailscale-docker-nat-fix` systemd service and two iptables rules in the `ts-postrouting` chain — one for `tailscale_ip_range` and one for `local_ip_range`. Both are needed because Docker's NAT masquerades LAN source IPs to `10.8.2.1` before Tailscale sees them.
+The `docker` role deploys a `tailscale-docker-nat-fix` systemd service and two iptables `ACCEPT` rules at the top of the `nat` table's `POSTROUTING` chain (above the `-j ts-postrouting` jump) — one for `tailscale_ip_range` and one for `local_ip_range`, both with destination `docker_network_subnet`. They preserve the real client source IP for tailnet/LAN traffic reaching the containers; without them Tailscale's `ts-postrouting` MASQUERADE rewrites the source to `10.8.2.1`, which is in neither allow range, so SWAG returns 403 on all internal services. The rules **must** live in `POSTROUTING`, not `ts-postrouting`: tailscaled flushes and rebuilds `ts-postrouting` on every reconfig (network change, `tailscale set`, exit-node toggle), which silently drops anything inserted there, but it never touches the main `POSTROUTING` chain. Internet-bound exit-node traffic doesn't match these rules (destination isn't the docker subnet), so it still falls through to the `ts-postrouting` MASQUERADE and the exit node keeps working.
 
 ### DNS relay
 
