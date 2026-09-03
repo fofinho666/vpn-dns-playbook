@@ -69,6 +69,21 @@
 # fix is to let it do no SNAT at all and masquerade ourselves for every
 # destination except the docker network (replies to containers route back over
 # tailscale0 unchanged).
+# IPv4 forwarding currently only survives because docker enables it at start;
+# tailscale's own health check flags it. Persist it for both families so the
+# subnet router works from boot.
+- name: Persist IP forwarding for subnet routing
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    sysctl_file: /etc/sysctl.d/99-tailscale.conf
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop:
+    - net.ipv4.ip_forward
+    - net.ipv6.conf.all.forwarding
+
 - name: Read tailscale prefs
   command: tailscale debug prefs
   register: _ts_prefs
