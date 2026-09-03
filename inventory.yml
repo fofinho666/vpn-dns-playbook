@@ -13,8 +13,6 @@ all:
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
   vars:
-    timestamp: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
-
     docker_users:
       - "{{ user}}"
 

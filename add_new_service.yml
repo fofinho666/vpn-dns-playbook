@@ -21,22 +21,8 @@
           - service_url is match('^(http|https)://.+')
         fail_msg: "URL must start with http:// or https://"
 
-    - name: Get User and Group IDs
-      getent:
-        database: passwd
-      tags:
-        - always
-
-    - name: Set User and Group IDs as facts
-      set_fact:
-        uid: "{{ ansible_facts['getent_passwd'][user][1] }}"
-        gid: "{{ ansible_facts['getent_passwd'][user][2] }}"
-        user_home: "{{ ansible_facts['getent_passwd'][user][4] }}"
-      tags:
-        - always
-
   tasks:
-    - name: "Processing new {{ subdomain }} service"
+    - name: "Parse host and port from {{ service_url }}"
       set_fact:
         service_host: "{{ service_url | regex_replace('^(.*://)?([^:/]+).*$', '\\2') }}"
         service_port: "{{ (service_url | regex_search('://[^/]+:([0-9]+)', '\\1') or ['80'])[0] }}"
@@ -88,7 +74,7 @@
           }
         dest: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
 
-    - name: Restart swag
-      include_tasks: tasks/restart_swag.yml
+    - name: Reload swag
+      include_tasks: tasks/reload_swag.yml
 
     - debug: msg="{{ subdomain }} service created - https://{{ subdomain }}.{{ domain }}"

@@ -14,20 +14,6 @@
           - subdomain is defined
         fail_msg: "Missing required variable. Need: subdomain"
 
-    - name: Get User and Group IDs
-      getent:
-        database: passwd
-      tags:
-        - always
-
-    - name: Set User and Group IDs as facts
-      set_fact:
-        uid: "{{ ansible_facts['getent_passwd'][user][1] }}"
-        gid: "{{ ansible_facts['getent_passwd'][user][2] }}"
-        user_home: "{{ ansible_facts['getent_passwd'][user][4] }}"
-      tags:
-        - always
-
   tasks:
     - name: Check if configuration file exists
       stat:
@@ -48,8 +34,8 @@
             path: "{{ docker_dir }}/swag/nginx/proxy-confs/{{ subdomain }}.subdomain.conf"
             state: absent
 
-        - name: Restart swag
-          include_tasks: tasks/restart_swag.yml
+        - name: Reload swag
+          include_tasks: tasks/reload_swag.yml
 
         - debug: msg="{{ subdomain }} subdomain removed from reverse proxy"
 
