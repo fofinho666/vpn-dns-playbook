@@ -1,0 +1,12 @@
+[Unit]
+Description=Masquerade forwarded Tailscale traffic except into the docker network (SWAG allow lists)
+After=tailscaled.service docker.service ufw.service
+PartOf=tailscaled.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/usr/sbin/iptables -t nat -C POSTROUTING -s {{ tailscale_ip_range }} ! -d {{ docker_network_subnet }} ! -o tailscale0 -m comment --comment tailscale-docker-snat-fix -j MASQUERADE 2>/dev/null || /usr/sbin/iptables -t nat -A POSTROUTING -s {{ tailscale_ip_range }} ! -d {{ docker_network_subnet }} ! -o tailscale0 -m comment --comment tailscale-docker-snat-fix -j MASQUERADE'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -60,3 +60,44 @@
     - >
       local_ip_range not in (item.approved_routes | default([])) or
       '0.0.0.0/0' not in (item.approved_routes | default([]))
+
+# Tailscale masquerades everything it forwards from the subnet route. When the
+# destination is a container on this host the packet leaves through the docker
+# bridge, so services behind SWAG see the docker gateway instead of the client's
+# 100.64.x.x address and their "allow tailscale_ip_range" rule denies it (403).
+# Tailscale re-inserts its own NAT jump first whenever it reconfigures, so the
+# fix is to let it do no SNAT at all and masquerade ourselves for every
+# destination except the docker network (replies to containers route back over
+# tailscale0 unchanged).
+- name: Read tailscale prefs
+  command: tailscale debug prefs
+  register: _ts_prefs
+  changed_when: false
+  failed_when: false
+
+- name: Disable tailscale's own SNAT for subnet routes
+  command: tailscale set --snat-subnet-routes=false
+  when: _ts_prefs.rc == 0 and not ((_ts_prefs.stdout | from_json).NoSNAT | default(false))
+
+- name: Masquerade forwarded tailscale traffic ourselves, except into the docker network
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ tailscale_ip_range }}"
+    destination: "! {{ docker_network_subnet }}"
+    out_interface: "! tailscale0"
+    jump: MASQUERADE
+    comment: tailscale-docker-snat-fix
+
+- name: Deploy the tailscale docker SNAT fix service (re-applied on boot)
+  template:
+    src: tailscale-docker-snat-fix.service.j2
+    dest: /etc/systemd/system/tailscale-docker-snat-fix.service
+    mode: '0644'
+
+- name: Enable the tailscale docker SNAT fix service
+  systemd:
+    name: tailscale-docker-snat-fix
+    enabled: yes
+    state: started
+    daemon_reload: yes

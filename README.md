@@ -37,6 +37,7 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 - **Tailscale** client app is installed on every device (phone, laptop, etc.)
 - The **server itself** runs Tailscale as a subnet router, advertising your LAN (`192.168.0.0/16`) to all connected devices
 - Once connected, you can reach any device on your home network from anywhere
+- The subnet router does **not** use Tailscale's own SNAT (`--snat-subnet-routes=false`); the `tailscale` role masquerades forwarded traffic itself for every destination except the docker network, so services behind SWAG see the client's `100.64.x.x` address and their LAN+Tailscale allow lists work (with Tailscale's SNAT they saw the docker gateway and answered 403)
 
 ## Requirements
 
