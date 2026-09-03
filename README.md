@@ -11,7 +11,7 @@ Ansible playbook to set up a home server with VPN access, two-factor authenticat
 | [Authelia](https://github.com/authelia/authelia) | Two-factor authentication (protects headplane and other services) |
 | [SWAG](https://github.com/linuxserver/docker-swag) | Reverse proxy + Let's Encrypt wildcard certs |
 | [Portainer](https://github.com/portainer/portainer) | Remote Docker container management |
-| [wetty](https://github.com/butlerx/wetty) | Break-glass web SSH — emergency browser terminal (Authelia-gated) |
+| [wetty](https://github.com/butlerx/wetty) | Rescue web SSH terminal (Authelia-gated) |
 | [Homer Dashboard](https://github.com/bastienwirtz/homer) | Service index dashboard |
 
 ## How remote access works
@@ -25,9 +25,9 @@ Browser → Cloudflare DNS → VPS :443
 
 1. A cheap VPS (e.g. Google Cloud free tier e2-micro) runs `socat`, listening on `:443`
 2. The home server maintains a persistent `autossh` reverse SSH tunnel, forwarding `127.0.0.1:8443` on the VPS to SWAG on the LAN
-3. Cloudflare DNS points `*.your.domain` and `your.domain` to the VPS IP (unproxied A records)
+3. Cloudflare DNS points the public subdomains (`auth`, the headscale subdomain, the rescue-shell subdomain) to the VPS IP as unproxied A records
 
-This bypasses CGNAT and works without any open ports on the home server. Crucially, it passes raw TCP — which is required for the Tailscale TS2021 protocol (Cloudflare's HTTP/2 proxy is incompatible with it).
+This bypasses CGNAT and works without any open ports on the home server. It passes raw TCP, which the Tailscale TS2021 protocol requires (Cloudflare's HTTP/2 proxy is incompatible with it).
 
 ## How the VPN works
 
@@ -42,7 +42,7 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 
 - A machine running **Ubuntu Server** (PC or Raspberry Pi 4+)
 - A domain managed on **Cloudflare DNS** (free account) with a Cloudflare API token (`Zone:DNS:Edit`)
-- A **VPS** with a public IP and SSH access (Google Cloud free tier e2-micro works well)
+- A **VPS** with a public IP and SSH access (e.g. a Google Cloud free tier e2-micro)
 - Your **local DNS server** (router, Pi-hole, etc.) resolving `*.your.domain` → server's local IP
 
 ## Setup
@@ -56,11 +56,11 @@ This playbook uses [Tailscale](https://tailscale.com/) (the client app) pointed 
 
    Save the token as `cloudflare_api_token` in `secret.yml`.
 
-The `vps.yml` playbook automatically manages the DNS records (`*.your.domain` and `your.domain` → VPS IP).
+The `vps.yml` playbook creates the A records for `auth.your.domain`, `<headscale_subdomain>.your.domain` and `<webssh_subdomain>.your.domain`, pointing at the VPS IP.
 
 ### 2. VPS (Google Cloud)
 
-A single **e2-micro** instance on Google Cloud's free tier works well (free in `us-central1`, `us-east1`, or `us-west1`).
+A single **e2-micro** instance on Google Cloud's free tier is enough (free in `us-central1`, `us-east1`, or `us-west1`).
 
 #### Create the VM
 
@@ -170,7 +170,7 @@ docker exec headscale headscale nodes approve-routes --identifier NODE_ID --rout
 ./service.sh
 ```
 
-New services are internal by default — accessible from your local network, through Tailscale, or via Authelia 2FA if exposed publicly. DNS is handled automatically by the `*.your.domain` wildcard record.
+New services are internal by default: reachable from your local network or through Tailscale, optionally behind Authelia 2FA. They resolve through your local DNS override (see below); no public DNS record is created. To expose one to the internet, see the notes in `CLAUDE.md` under service access patterns.
 
 ### Configure the Homer dashboard
 

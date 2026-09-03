@@ -86,7 +86,7 @@ The `vps_relay` role manages Cloudflare DNS records directly via the Cloudflare 
 - **Internal only** (default) — reachable on LAN or via Tailscale, no additional auth
 - **Internal + Authelia 2FA** — same IP restriction, plus Authelia gate; pass `-e authelia_protected=true` or answer yes in `service.sh`
 
-To expose a service to the internet instead (no IP restriction), manually edit the generated nginx conf: remove the `allow`/`deny` block and add Authelia in front — see `roles/swag/templates/nginx/proxy-confs/oops.subdomain.conf` for the snippet placement. The Cloudflare DNS wildcard already points to the VPS, so no DNS change is needed.
+To expose a service to the internet instead (no IP restriction), manually edit the generated nginx conf: remove the `allow`/`deny` block and add Authelia in front — see `roles/swag/templates/nginx/proxy-confs/oops.subdomain.conf` for the snippet placement. Then add an unproxied A record for the subdomain pointing at the VPS IP; the `vps_relay` role only manages the three records listed above.
 
 ## Key variables
 
