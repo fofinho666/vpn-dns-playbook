@@ -1,0 +1,9 @@
+---
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Restart tunnel-monitor timer
+  systemd:
+    name: tunnel-monitor.timer
+    state: restarted

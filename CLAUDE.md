@@ -71,6 +71,10 @@ The `ufw` role opens port 53 from `tailscale_ip_range` for this to work.
 
 `roles/headscale/files/derp.yaml` is a pinned static copy of the Tailscale DERP map. Without it, Headscale would try to fetch the map from `controlplane.tailscale.com` at startup, which is DNS-sinkholed on the LAN and causes a crash-loop. To refresh it, fetch `https://controlplane.tailscale.com/derpmap/default` from a non-filtered host and update the file.
 
+### Tunnel monitoring
+
+The `tunnel_monitor` role installs a systemd timer on the server that fetches `https://<headscale_subdomain>.<domain>/health` through the VPS IP every 5 minutes. After 15 minutes of failure it emails `smtp_sender` with port checks and the last tunnel log lines, re-alerts every 24h, and mails again on recovery. `tunnel-monitor --test` on the server sends a test email. Thresholds are in `roles/tunnel_monitor/defaults/main.yml`.
+
 ### VPS DNS management
 
 The `vps_relay` role manages Cloudflare DNS records directly via the Cloudflare API. It creates unproxied A records pointing `auth.<domain>`, `<headscale_subdomain>.<domain>`, and `<webssh_subdomain>.<domain>` to the VPS IP.

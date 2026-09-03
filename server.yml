@@ -68,6 +68,10 @@
       tags:
         - reverse_tunnel
 
+    - role: tunnel_monitor
+      tags:
+        - tunnel_monitor
+
     # Must run after swag: connects to https://headscale.<domain>
     - role: tailscale
       tags:

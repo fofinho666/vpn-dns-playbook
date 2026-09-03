@@ -1,0 +1,10 @@
+[Unit]
+Description=Run tunnel-monitor periodically
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec={{ tunnel_monitor_interval }}
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

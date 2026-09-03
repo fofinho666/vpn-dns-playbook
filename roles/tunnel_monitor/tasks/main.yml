@@ -1,0 +1,35 @@
+---
+- name: Deploy tunnel monitor config
+  template:
+    src: tunnel-monitor.env.j2
+    dest: /etc/tunnel-monitor.env
+    mode: '0600'
+
+- name: Deploy tunnel monitor script
+  copy:
+    src: tunnel-monitor.sh
+    dest: /usr/local/bin/tunnel-monitor
+    mode: '0755'
+
+- name: Deploy tunnel monitor service
+  template:
+    src: tunnel-monitor.service.j2
+    dest: /etc/systemd/system/tunnel-monitor.service
+    mode: '0644'
+  notify: Reload systemd
+
+- name: Deploy tunnel monitor timer
+  template:
+    src: tunnel-monitor.timer.j2
+    dest: /etc/systemd/system/tunnel-monitor.timer
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart tunnel-monitor timer
+
+- name: Enable and start tunnel monitor timer
+  systemd:
+    name: tunnel-monitor.timer
+    enabled: yes
+    state: started
+    daemon_reload: yes

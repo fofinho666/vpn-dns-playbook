@@ -1,0 +1,5 @@
+---
+tunnel_monitor_recipient: "{{ smtp_sender }}"
+tunnel_monitor_interval: 5min
+tunnel_monitor_down_threshold_min: 15
+tunnel_monitor_realert_hours: 24

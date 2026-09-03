@@ -1,0 +1,8 @@
+[Unit]
+Description=Check the VPS relay path and email on outage
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/tunnel-monitor
