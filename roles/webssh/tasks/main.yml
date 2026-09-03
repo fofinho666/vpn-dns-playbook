@@ -1,8 +1,4 @@
 ---
-# Oops shell (wetty). Reached only through:
-#   Cloudflare Tunnel -> SWAG (Authelia 2FA) -> wetty -> SSH login to the host
-# wetty itself holds no credentials: it prompts in the browser for the
-# system SSH user + password, which is the second independent factor.
 - name: Create webssh config directory
   file:
     path: "{{ docker_dir }}/webssh"

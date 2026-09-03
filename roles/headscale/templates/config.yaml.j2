@@ -13,10 +13,6 @@ prefixes:
 derp:
   server:
     enabled: false
-  # Static DERP map pinned locally (roles/headscale/files/derp.yaml). Headscale
-  # must NOT fetch https://controlplane.tailscale.com/derpmap/default: that
-  # hostname is DNS-sinkholed by the LAN filter, and a failed DERPMap fetch is
-  # fatal -> Headscale crash-loops on startup and the whole tailnet goes down.
   urls: []
   paths:
     - /var/lib/headscale/derp.yaml

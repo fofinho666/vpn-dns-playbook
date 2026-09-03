@@ -1,5 +1,4 @@
 ---
-# Raw-TCP relay: socat :443 -> 127.0.0.1:8443 (the reverse-SSH tunnel endpoint)
 - name: Install socat
   apt:
     name: socat
@@ -19,7 +18,6 @@
     state: started
     daemon_reload: yes
 
-# ── Cloudflare DNS: public-via-VPS subdomains → VPS public IP (unproxied) ──────
 - name: Look up Cloudflare zone ID
   uri:
     url: "https://api.cloudflare.com/client/v4/zones?name={{ domain }}"
@@ -59,7 +57,7 @@
   loop: "{{ _vps_dns_checks.results }}"
   delegate_to: localhost
 
-- name: Create missing or updated A records → VPS (unproxied)
+- name: Create unproxied A records pointing to the VPS
   when: >-
     item.json.result | length == 0 or
     (item.json.result | first).content != vps_host

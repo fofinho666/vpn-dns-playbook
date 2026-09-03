@@ -12,10 +12,6 @@
     mode: '0644'
   notify: restart headscale
 
-# Pinned Tailscale DERP map. Without this Headscale fetches it from
-# controlplane.tailscale.com at startup, which is DNS-sinkholed on the LAN
-# and crash-loops the whole tailnet. Refresh: on a non-filtered host run
-# `curl -s https://controlplane.tailscale.com/derpmap/default` and re-convert.
 - name: Deploy pinned static DERP map
   copy:
     src: derp.yaml

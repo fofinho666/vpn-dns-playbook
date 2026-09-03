@@ -24,7 +24,7 @@
     mode: '0644'
   notify: Enable and start tailscale-docker-nat-fix
 
-- name: Add POSTROUTING ACCEPT rule for Tailscale IPs (idempotent)
+- name: Add POSTROUTING ACCEPT rule for Tailscale IPs
   iptables:
     table: nat
     chain: POSTROUTING
@@ -34,7 +34,7 @@
     action: insert
     rule_num: 1
 
-- name: Add POSTROUTING ACCEPT rule for LAN IPs (idempotent)
+- name: Add POSTROUTING ACCEPT rule for LAN IPs
   iptables:
     table: nat
     chain: POSTROUTING
