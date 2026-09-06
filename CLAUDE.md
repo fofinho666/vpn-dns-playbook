@@ -32,6 +32,7 @@ All secrets live in `secret.yml` (not committed). Copy `secret_example.yml` to s
 ./service.sh          # interactive: add or remove a service
 # Or directly:
 ansible-playbook add_new_service.yml -e subdomain=octoprint -e service_url=http://192.168.1.86:8080
+ansible-playbook add_new_service.yml -e subdomain=habits -e service_url=http://192.168.8.192:80 -e streaming=true   # streaming=true: no response buffering (server-sent events)
 ansible-playbook remove_service.yml -e subdomain=octoprint
 ```
 

@@ -1,5 +1,6 @@
 ---
-# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint [-e authelia_protected=true]
+# ansible-playbook add_new_service.yml -e service_url=http://192.168.1.86 -e subdomain=octoprint [-e authelia_protected=true] [-e streaming=true]
+# streaming=true disables response buffering, for services that use server-sent events (proxy.conf's 240s read timeout still applies).
 - name: Add new service to reverse proxy
   hosts: server
   become: true
@@ -66,6 +67,9 @@
                   set $upstream_port {{ service_port }};
                   set $upstream_proto http;
                   proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+          {% if streaming | default(false) | bool %}
+                  proxy_buffering off;
+          {% endif %}
 
                   allow {{ local_ip_range }};
                   allow {{ tailscale_ip_range }};
